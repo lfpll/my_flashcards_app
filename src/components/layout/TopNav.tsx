@@ -3,7 +3,7 @@
  * Horizontal navigation bar for Playful Pro design
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function TopNav({ 
@@ -15,6 +15,20 @@ export default function TopNav({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { theme, cycleTheme } = useTheme();
 
+  // Keyboard shortcut to cycle theme (Ctrl+`)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check if Ctrl+` is pressed (backtick key)
+      if ((e.ctrlKey || e.metaKey) && e.key === '`') {
+        e.preventDefault();
+        cycleTheme();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [cycleTheme]);
+
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-md border-b shadow-lg" style={{ 
       backgroundColor: 'var(--card-color)', 
@@ -25,7 +39,7 @@ export default function TopNav({
           {/* Logo & Brand */}
           <div className="flex items-center gap-8">
             <button 
-              onClick={() => onNavigate('dashboard')}
+              onClick={() => onNavigate('home')}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               <div className="w-8 h-8 bg-accent-primary rounded-lg flex items-center justify-center">
@@ -41,13 +55,13 @@ export default function TopNav({
             {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center gap-2">
               <button
-                onClick={() => onNavigate('dashboard')}
+                onClick={() => onNavigate('home')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                  currentView === 'dashboard'
+                  currentView === 'home'
                     ? 'bg-accent-primary text-white shadow-md'
                     : ''
                 }`}
-                style={currentView !== 'dashboard' ? {
+                style={currentView !== 'home' ? {
                   color: 'var(--text-dim-color)',
                   backgroundColor: 'transparent'
                 } : {}}
@@ -104,7 +118,7 @@ export default function TopNav({
               className="p-2 rounded-lg transition-colors hover:opacity-70"
               style={{ backgroundColor: 'var(--lighter-color)' }}
               aria-label={`Current theme: ${theme}. Click to cycle themes`}
-              title={`Theme: ${theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'Ocean Breeze'}`}
+              title={`Theme: ${theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'Ocean Breeze'} (Ctrl+\`)`}
             >
               {theme === 'light' ? (
                 <svg className="w-5 h-5" style={{ color: 'var(--text-dim-color)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -191,13 +205,13 @@ export default function TopNav({
         {/* Mobile Bottom Nav */}
         <div className="md:hidden flex items-center justify-around py-2" style={{ borderTop: '1px solid var(--border-color)' }}>
           <button
-            onClick={() => onNavigate('dashboard')}
+            onClick={() => onNavigate('home')}
             className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${
-              currentView === 'dashboard'
+              currentView === 'home'
                 ? 'text-accent-primary'
                 : ''
             }`}
-            style={currentView !== 'dashboard' ? { color: 'var(--text-dim-color)' } : {}}
+            style={currentView !== 'home' ? { color: 'var(--text-dim-color)' } : {}}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />

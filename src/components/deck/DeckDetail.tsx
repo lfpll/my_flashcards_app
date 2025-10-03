@@ -111,12 +111,11 @@ export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back'
     setNewCardEditors(prev => prev.filter(id => id !== editorId));
   };
 
-  // Keyboard shortcut to add new card (Alt+N)
+  // Keyboard shortcut to add new card (Ctrl+Shift+A)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Check if Alt+N is pressed (and not in an input/textarea)
-      if (e.altKey && !e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'n' && 
-          !['INPUT', 'TEXTAREA'].includes(e.target.tagName)) {
+      // Check if Ctrl+Shift+A is pressed (works anywhere, including textareas)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         addNewCard();
       }
@@ -191,20 +190,20 @@ export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back'
             <Button
               variant="primary"
               onClick={addNewCard}
-              title="Add new card (Alt+N)"
+              title="Add new card (Ctrl+Shift+A)"
               className="px-3 md:px-4 py-2"
             >
               <svg className="w-4 h-4 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               <span className="hidden sm:inline">Add Card</span>
-              <kbd className="hidden lg:inline ml-2 px-1.5 py-0.5 text-xs bg-theme-bg rounded border border-theme-lighter opacity-60">Alt+N</kbd>
+              <kbd className="hidden lg:inline ml-2 px-1.5 py-0.5 text-xs bg-theme-bg rounded border border-theme-lighter opacity-60">Ctrl+Shift+A</kbd>
             </Button>
               {/* Import CSV - Desktop only */}
               <Button
               variant="primary"
-              onClick={addNewCard}
-              title="Add new card (Alt+N)"
+              onClick={() => setIsBulkAddOpen(true)}
+              title="Import cards from CSV"
               className="px-3 md:px-4 py-2"
             >
                 <svg className="w-4 h-4 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
