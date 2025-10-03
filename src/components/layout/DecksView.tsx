@@ -226,20 +226,34 @@ export default function DecksView({ onSelectDeck, onCreateDeck }) {
 
           {/* Add New Deck Card */}
           <div
-            onClick={() => setShowInlineEditor(true)}
-            className="relative bg-theme-card rounded-2xl border-2 border-dashed border-theme-lighter p-6 hover:border-accent-primary/50 transition-all hover:scale-[1.02] cursor-pointer group flex items-center justify-center min-h-[280px]"
+            onClick={() => !showInlineEditor && setShowInlineEditor(true)}
+            className={`relative bg-theme-card rounded-2xl border-2 border-dashed border-theme-lighter p-6 transition-all flex items-center justify-center min-h-[280px] ${
+              showInlineEditor 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:border-accent-primary/50 hover:scale-[1.02] cursor-pointer group'
+            }`}
           >
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-theme-lighter group-hover:bg-accent-primary/10 flex items-center justify-center transition-all">
-                <svg className="w-8 h-8 text-theme-textDim group-hover:text-accent-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-theme-lighter flex items-center justify-center transition-all ${
+                !showInlineEditor && 'group-hover:bg-accent-primary/10'
+              }`}>
+                <svg className={`w-8 h-8 transition-colors ${
+                  showInlineEditor 
+                    ? 'text-theme-textDim/50' 
+                    : 'text-theme-textDim group-hover:text-accent-primary'
+                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-theme-textDim group-hover:text-accent-primary transition-colors">
+              <h3 className={`text-lg font-semibold mb-2 transition-colors ${
+                showInlineEditor 
+                  ? 'text-theme-textDim/50' 
+                  : 'text-theme-textDim group-hover:text-accent-primary'
+              }`}>
                 Create New Deck
               </h3>
               <p className="text-sm text-theme-textDim">
-                Start a new collection of flashcards
+                {showInlineEditor ? 'Finish editing first' : 'Start a new collection of flashcards'}
               </p>
             </div>
           </div>
