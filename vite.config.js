@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/my_flashcards_app/',
+  // Use base path for GitHub Pages, but root path for Netlify
+  base: process.env.NETLIFY ? '/' : '/my_flashcards_app/',
 })
 
