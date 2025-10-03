@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards Design System - Color & Typography Showcase</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        :root {
+            /* Light theme (default) */
+            --bg-color: #f8f9fa;
+            --bg-color-rgb: 248 249 250;
+            --card-color: #ffffff;
+            --card-color-rgb: 255 255 255;
+            --lighter-color: #f3f4f6;
+            --lighter-color-rgb: 243 244 246;
+            --text-color: #1a1a1a;
+            --text-color-rgb: 26 26 26;
+            --text-dim-color: #6b7280;
+            --text-dim-color-rgb: 107 114 128;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0D0E11;
+            --bg-color-rgb: 13 14 17;
+            --card-color: #16171D;
+            --card-color-rgb: 22 23 29;
+            --lighter-color: #2A2B32;
+            --lighter-color-rgb: 42 43 50;
+            --text-color: #E6EDF3;
+            --text-color-rgb: 230 237 243;
+            --text-dim-color: #9DA3AE;
+            --text-dim-color-rgb: 157 163 174;
+            --border-color: #2A2B32;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        .theme-card {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .theme-lighter {
+            background-color: var(--lighter-color);
+        }
+
+        .theme-text {
+            color: var(--text-color);
+        }
+
+        .theme-text-dim {
+            color: var(--text-dim-color);
+        }
+
+        .theme-border {
+            border-color: var(--border-color);
+        }
+
+        .color-swatch {
+            width: 100%;
+            height: 60px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-swatch::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .color-swatch:hover::before {
+            opacity: 1;
+        }
+
+        .typography-demo {
+            margin: 8px 0;
+            padding: 12px;
+            background-color: var(--lighter-color);
+            border-radius: 6px;
+            border-left: 4px solid var(--border-color);
+        }
+
+        .component-demo {
+            padding: 16px;
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin: 8px 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-demo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background-color: #5E6AD2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #505AC0;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: var(--lighter-color);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+
+        .btn-success {
+            background-color: #16a34a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #15803d;
+        }
+
+        .btn-error {
+            background-color: #F85149;
+            color: white;
+        }
+
+        .btn-error:hover {
+            background-color: #E63946;
+        }
+
+        .input-demo {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--card-color);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .input-demo:focus {
+            outline: none;
+            border-color: #5E6AD2;
+            box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.1);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--bg-color) 0%, var(--lighter-color) 100%);
+        }
+
+        /* FlashCard Flip Animation */
+        .flip-card {
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        .card-hover-effect {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-hover-effect-answer:hover {
+            transform: translateY(-2px) rotateY(180deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-question {
+            background-color: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .badge-answer {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-due {
+            background-color: #5E6AD2;
+            color: white;
+        }
+
+        .badge-complete {
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        /* Card List Item Styles */
+        .card-list-item {
+            position: relative;
+            padding: 16px;
+            background-color: var(--card-color);
+            border-bottom: 1px solid rgba(42, 43, 50, 0.3);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .card-list-item:hover {
+            background-color: var(--lighter-color);
+        }
+
+        .card-list-item .delete-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .card-list-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        /* Deck Card Styles */
+        .deck-card {
+            position: relative;
+            padding: 24px;
+            background-color: var(--card-color);
+            border: 2px solid var(--lighter-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .deck-card:hover {
+            background-color: var(--lighter-color);
+            border-color: #5E6AD2;
+            transform: translateY(-1px);
+        }
+
+        .deck-card .delete-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .deck-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .deck-card .delete-btn {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg">
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button id="themeToggle" class="theme-card px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all">
+            <i data-lucide="sun" class="w-4 h-4"></i>
+            <span class="ml-2 text-sm font-medium">Light</span>
+        </button>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-12">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold theme-text mb-4">Flashcards Design System</h1>
+            <p class="text-xl theme-text-dim">Color Palette & Typography Showcase</p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button class="btn-demo btn-primary" onclick="exportColors()">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Export Colors
+                </button>
+                <button class="btn-demo btn-secondary" onclick="copyToClipboard()">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    Copy CSS
+                </button>
+            </div>
+        </div>
+
+        <!-- Color Palette Section -->
+        <div class="theme-card rounded-xl p-8 mb-12">
+            <h2 class="text-3xl font-bold theme-text mb-8">Color Palette</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Background Colors -->
+                <div>
+                    <h3 class="text-lg font-semibold theme-text mb-4">Background Colors</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="color-swatch" style="background-color: var(--bg-color); color: var(--text-color);">
+                                Background
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">var(--bg-color)</p>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: var(--card-color); color: var(--text-color);">
+                                Card
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">var(--card-color)</p>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: var(--lighter-color); color: var(--text-color);">
+                                Lighter
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">var(--lighter-color)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Colors -->
+                <div>
+                    <h3 class="text-lg font-semibold theme-text mb-4">Text Colors</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="color-swatch" style="background-color: var(--text-color); color: var(--bg-color);">
+                                Primary Text
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">var(--text-color)</p>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: var(--text-dim-color); color: var(--bg-color);">
+                                Dim Text
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">var(--text-dim-color)</p>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: var(--border-color); color: var(--text-color);">
+                                Border
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">var(--border-color)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accent Colors -->
+                <div>
+                    <h3 class="text-lg font-semibold theme-text mb-4">Accent Colors</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="color-swatch" style="background-color: #5E6AD2; color: white;">
+                                Primary
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">#5E6AD2</p>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: #16a34a; color: white;">
+                                Success
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">#16a34a</p>
+                        </div>
+                        <div>
+                            <div class="color-swatch" style="background-color: #F85149; color: white;">
+                                Error
+                            </div>
+                            <p class="text-sm theme-text-dim mt-1">#F85149</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typography Section -->
+        <div class="theme-card rounded-xl p-8 mb-12">
+            <h2 class="text-3xl font-bold theme-text mb-8">Typography Scale</h2>
+            
+            <div class="space-y-6">
+                <div class="typography-demo">
+                    <h1 class="text-5xl font-bold theme-text mb-2">Heading 1 - 48px Bold</h1>
+                    <p class="text-sm theme-text-dim">Used for main page titles and hero sections</p>
+                </div>
+                
+                <div class="typography-demo">
+                    <h2 class="text-4xl font-bold theme-text mb-2">Heading 2 - 36px Bold</h2>
+                    <p class="text-sm theme-text-dim">Used for section headers and important content</p>
+                </div>
+                
+                <div class="typography-demo">
+                    <h3 class="text-3xl font-bold theme-text mb-2">Heading 3 - 24px Bold</h3>
+                    <p class="text-sm theme-text-dim">Used for subsection headers</p>
+                </div>
+                
+                <div class="typography-demo">
+                    <h4 class="text-2xl font-bold theme-text mb-2">Heading 4 - 20px Bold</h4>
+                    <p class="text-sm theme-text-dim">Used for card titles and component headers</p>
+                </div>
+                
+                <div class="typography-demo">
+                    <h5 class="text-xl font-bold theme-text mb-2">Heading 5 - 18px Bold</h5>
+                    <p class="text-sm theme-text-dim">Used for smaller headers and labels</p>
+                </div>
+                
+                <div class="typography-demo">
+                    <h6 class="text-lg font-bold theme-text mb-2">Heading 6 - 16px Bold</h6>
+                    <p class="text-sm theme-text-dim">Used for the smallest headers</p>
+                </div>
+                
+                <div class="typography-demo">
+                    <p class="text-base theme-text mb-2">Body Text - 14px Regular</p>
+                    <p class="text-sm theme-text-dim">Used for main content and descriptions</p>
+                </div>
+                
+                <div class="typography-demo">
+                    <p class="text-sm theme-text mb-2">Small Text - 12px Regular</p>
+                    <p class="text-sm theme-text-dim">Used for captions and secondary information</p>
+                </div>
+                
+                <div class="typography-demo">
+                    <p class="text-xs theme-text mb-2">Caption Text - 10px Regular</p>
+                    <p class="text-sm theme-text-dim">Used for fine print and metadata</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Templates Section -->
+        <div class="theme-card rounded-xl p-8 mb-12">
+            <h2 class="text-3xl font-bold theme-text mb-8">Card Templates</h2>
+            
+            <!-- FlashCard Component -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold theme-text mb-6">FlashCard Component</h3>
+                <p class="text-sm theme-text-dim mb-6">Interactive flip card with question/answer sides and hover effects</p>
+                
+                <div class="max-w-md mx-auto">
+                    <div class="flip-card" style="height: 320px;">
+                        <div class="flip-card-inner" id="flashCardInner">
+                            <!-- Front of Card - Question -->
+                            <div class="flip-card-front theme-card card-hover-effect p-8 flex flex-col items-center justify-center border-2" style="border-color: var(--border-color);">
+                                <div class="absolute top-6 left-1/2 transform -translate-x-1/2">
+                                    <div class="badge badge-question">Question</div>
+                                </div>
+                                
+                                <div class="text-center w-full h-full flex flex-col items-center justify-center overflow-auto px-2 mt-8">
+                                    <h3 class="text-3xl font-bold theme-text leading-tight mb-4">
+                                        What is the capital of <strong>France</strong>?
+                                    </h3>
+                                </div>
+                                
+                                <div class="absolute bottom-6 text-sm theme-text-dim">
+                                    Click to reveal answer
+                                </div>
+                            </div>
+
+                            <!-- Back of Card - Answer -->
+                            <div class="flip-card-back theme-card card-hover-effect-answer p-8 flex flex-col items-center justify-center border-2" style="border-color: var(--border-color);">
+                                <div class="absolute top-6 left-1/2 transform -translate-x-1/2">
+                                    <div class="badge badge-answer">Answer</div>
+                                </div>
+                                
+                                <div class="text-center w-full h-full flex flex-col items-center justify-center overflow-auto px-2 mt-8">
+                                    <h3 class="text-3xl font-bold theme-text leading-tight mb-4">
+                                        <strong>Paris</strong> is the capital of France
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button onclick="flipCard()" class="btn-demo btn-primary">
+                            <i data-lucide="rotate-3d" class="w-4 h-4"></i>
+                            Flip Card
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DeckCard Component -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold theme-text mb-6">DeckCard Component</h3>
+                <p class="text-sm theme-text-dim mb-6">Deck cards with stats, hover effects, and delete functionality</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Deck with due cards -->
+                    <div class="deck-card group">
+                        <button class="delete-btn p-2 rounded-lg bg-red-100 hover:bg-red-600 text-red-600 hover:text-white transition-all" title="Delete deck">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                        
+                        <h3 class="text-xl font-semibold theme-text mb-2 truncate pr-8">Spanish Vocabulary</h3>
+                        <p class="text-sm theme-text-dim mb-4 line-clamp-2">
+                            Essential Spanish words and phrases for beginners
+                        </p>
+                        
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="theme-text-dim">
+                                <span class="font-medium">24</span> cards
+                            </div>
+                            <div class="badge badge-due">8 due</div>
+                        </div>
+                        
+                        <div class="text-xs theme-text-dim mt-2">
+                            Updated 2 days ago
+                        </div>
+                    </div>
+
+                    <!-- Deck with all cards done -->
+                    <div class="deck-card group">
+                        <button class="delete-btn p-2 rounded-lg bg-red-100 hover:bg-red-600 text-red-600 hover:text-white transition-all" title="Delete deck">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                        
+                        <h3 class="text-xl font-semibold theme-text mb-2 truncate pr-8">JavaScript Basics</h3>
+                        <p class="text-sm theme-text-dim mb-4 line-clamp-2">
+                            Core JavaScript concepts and syntax
+                        </p>
+                        
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="theme-text-dim">
+                                <span class="font-medium">15</span> cards
+                            </div>
+                            <div class="badge-complete">✓ All done!</div>
+                        </div>
+                        
+                        <div class="text-xs theme-text-dim mt-2">
+                            Updated 1 week ago
+                        </div>
+                    </div>
+
+                    <!-- Empty deck -->
+                    <div class="deck-card group">
+                        <button class="delete-btn p-2 rounded-lg bg-red-100 hover:bg-red-600 text-red-600 hover:text-white transition-all" title="Delete deck">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                        
+                        <h3 class="text-xl font-semibold theme-text mb-2 truncate pr-8">New Deck</h3>
+                        <p class="text-sm theme-text-dim mb-4 line-clamp-2">
+                            Start adding cards to this deck
+                        </p>
+                        
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="theme-text-dim">
+                                <span class="font-medium">0</span> cards
+                            </div>
+                        </div>
+                        
+                        <div class="text-xs theme-text-dim mt-2">
+                            Created today
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CardListItem Component -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold theme-text mb-6">CardListItem Component</h3>
+                <p class="text-sm theme-text-dim mb-6">Card list items with front/back display and hover actions</p>
+                
+                <div class="max-w-4xl mx-auto">
+                    <div class="theme-card rounded-lg overflow-hidden">
+                        <!-- Card 1 -->
+                        <div class="card-list-item">
+                            <div class="delete-btn">
+                                <button class="p-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-all" title="Delete card">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pr-10 md:pr-12">
+                                <div>
+                                    <div class="text-xs font-medium theme-text-dim mb-1 uppercase">Front</div>
+                                    <div class="text-sm font-medium theme-text break-words">
+                                        What is the <strong>capital</strong> of Spain?
+                                    </div>
+                                </div>
+                                <div class="opacity-50">
+                                    <div class="text-xs font-medium theme-text-dim mb-1 uppercase">Back</div>
+                                    <div class="text-sm font-medium theme-text break-words">
+                                        ••••••
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="card-list-item">
+                            <div class="delete-btn">
+                                <button class="p-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-all" title="Delete card">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pr-10 md:pr-12">
+                                <div>
+                                    <div class="text-xs font-medium theme-text-dim mb-1 uppercase">Front</div>
+                                    <div class="text-sm font-medium theme-text break-words">
+                                        Define <strong>photosynthesis</strong>
+                                    </div>
+                                </div>
+                                <div class="opacity-50">
+                                    <div class="text-xs font-medium theme-text-dim mb-1 uppercase">Back</div>
+                                    <div class="text-sm font-medium theme-text break-words">
+                                        ••••••
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3 with image -->
+                        <div class="card-list-item">
+                            <div class="delete-btn">
+                                <button class="p-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-all" title="Delete card">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pr-10 md:pr-12">
+                                <div>
+                                    <div class="text-xs font-medium theme-text-dim mb-1 uppercase">Front</div>
+                                    <div class="text-sm font-medium theme-text break-words">
+                                        What is this <strong>mathematical symbol</strong>?
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="w-16 h-16 bg-theme-lighter rounded border border-theme-lighter flex items-center justify-center">
+                                            <span class="text-2xl">π</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="opacity-50">
+                                    <div class="text-xs font-medium theme-text-dim mb-1 uppercase">Back</div>
+                                    <div class="text-sm font-medium theme-text break-words">
+                                        ••••••
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Component Examples Section -->
+        <div class="theme-card rounded-xl p-8 mb-12">
+            <h2 class="text-3xl font-bold theme-text mb-8">Component Examples</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Buttons -->
+                <div>
+                    <h3 class="text-xl font-semibold theme-text mb-4">Buttons</h3>
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap gap-3">
+                            <button class="btn-demo btn-primary">Primary Button</button>
+                            <button class="btn-demo btn-secondary">Secondary Button</button>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button class="btn-demo btn-success">Success Button</button>
+                            <button class="btn-demo btn-error">Error Button</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Elements -->
+                <div>
+                    <h3 class="text-xl font-semibold theme-text mb-4">Form Elements</h3>
+                    <div class="space-y-4">
+                        <input type="text" class="input-demo" placeholder="Enter text here..." />
+                        <textarea class="input-demo" rows="3" placeholder="Enter longer text here..."></textarea>
+                        <select class="input-demo">
+                            <option>Select an option</option>
+                            <option>Option 1</option>
+                            <option>Option 2</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Cards -->
+                <div>
+                    <h3 class="text-xl font-semibold theme-text mb-4">Cards</h3>
+                    <div class="component-demo">
+                        <h4 class="text-lg font-semibold theme-text mb-2">Sample Card</h4>
+                        <p class="text-sm theme-text-dim mb-4">This is a sample card component showing how the design system colors work together.</p>
+                        <div class="flex gap-2">
+                            <button class="btn-demo btn-primary text-xs px-3 py-1">Action</button>
+                            <button class="btn-demo btn-secondary text-xs px-3 py-1">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div>
+                    <h3 class="text-xl font-semibold theme-text mb-4">Navigation</h3>
+                    <div class="theme-lighter rounded-lg p-4">
+                        <nav class="flex space-x-6">
+                            <a href="#" class="text-sm font-medium theme-text hover:text-blue-600">Dashboard</a>
+                            <a href="#" class="text-sm font-medium theme-text-dim hover:text-blue-600">Decks</a>
+                            <a href="#" class="text-sm font-medium theme-text-dim hover:text-blue-600">Study</a>
+                            <a href="#" class="text-sm font-medium theme-text-dim hover:text-blue-600">Settings</a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSS Variables Section -->
+        <div class="theme-card rounded-xl p-8">
+            <h2 class="text-3xl font-bold theme-text mb-8">CSS Variables</h2>
+            <div class="bg-gray-900 text-green-400 p-6 rounded-lg font-mono text-sm overflow-x-auto">
+                <pre id="cssVariables">/* Light Theme Variables */
+:root,
+[data-theme="light"] {
+  --bg-color: #f8f9fa;
+  --bg-color-rgb: 248 249 250;
+  --card-color: #ffffff;
+  --card-color-rgb: 255 255 255;
+  --lighter-color: #f3f4f6;
+  --lighter-color-rgb: 243 244 246;
+  --text-color: #1a1a1a;
+  --text-color-rgb: 26 26 26;
+  --text-dim-color: #6b7280;
+  --text-dim-color-rgb: 107 114 128;
+  --border-color: #e5e7eb;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+  --bg-color: #0D0E11;
+  --bg-color-rgb: 13 14 17;
+  --card-color: #16171D;
+  --card-color-rgb: 22 23 29;
+  --lighter-color: #2A2B32;
+  --lighter-color-rgb: 42 43 50;
+  --text-color: #E6EDF3;
+  --text-color-rgb: 230 237 243;
+  --text-dim-color: #9DA3AE;
+  --text-dim-color-rgb: 157 163 174;
+  --border-color: #2A2B32;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        let currentTheme = 'light';
+
+        themeToggle.addEventListener('click', () => {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', currentTheme);
+            
+            const icon = themeToggle.querySelector('i');
+            const text = themeToggle.querySelector('span');
+            
+            if (currentTheme === 'dark') {
+                icon.setAttribute('data-lucide', 'moon');
+                text.textContent = 'Dark';
+            } else {
+                icon.setAttribute('data-lucide', 'sun');
+                text.textContent = 'Light';
+            }
+            
+            lucide.createIcons();
+        });
+
+        // Export colors function
+        function exportColors() {
+            const colors = {
+                light: {
+                    background: '#f8f9fa',
+                    card: '#ffffff',
+                    lighter: '#f3f4f6',
+                    text: '#1a1a1a',
+                    textDim: '#6b7280',
+                    border: '#e5e7eb'
+                },
+                dark: {
+                    background: '#0D0E11',
+                    card: '#16171D',
+                    lighter: '#2A2B32',
+                    text: '#E6EDF3',
+                    textDim: '#9DA3AE',
+                    border: '#2A2B32'
+                },
+                accents: {
+                    primary: '#5E6AD2',
+                    success: '#16a34a',
+                    error: '#F85149'
+                }
+            };
+            
+            const dataStr = JSON.stringify(colors, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'flashcards-colors.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Copy CSS to clipboard
+        function copyToClipboard() {
+            const cssText = document.getElementById('cssVariables').textContent;
+            navigator.clipboard.writeText(cssText).then(() => {
+                alert('CSS variables copied to clipboard!');
+            });
+        }
+
+        // Add hover effects to color swatches
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('mouseenter', () => {
+                swatch.style.transform = 'scale(1.05)';
+            });
+            
+            swatch.addEventListener('mouseleave', () => {
+                swatch.style.transform = 'scale(1)';
+            });
+        });
+
+        // FlashCard flip functionality
+        function flipCard() {
+            const cardInner = document.getElementById('flashCardInner');
+            cardInner.classList.toggle('flipped');
+        }
+    </script>
+</body>
+</html>
