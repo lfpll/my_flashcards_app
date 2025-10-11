@@ -204,13 +204,12 @@ export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back'
               variant="primary"
               onClick={() => setIsBulkAddOpen(true)}
               title="Import cards from CSV"
-              className="px-3 md:px-4 py-2"
+              className="hidden px-3 md:px-4 py-2"
             >
                 <svg className="w-4 h-4 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 <span className="hidden sm:inline">Import CSV</span>
-                <span className="sm:hidden">Import</span>
               </Button>
 
             {/* Show/Hide Answers */}
@@ -288,19 +287,6 @@ export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back'
           </div>
         </div>
 
-        {/* Full Width Card List */}
-        {/*
-          CARD LIST CONTAINER OPTIONS - Choose your preferred style:
-
-          1. FULL WIDTH MOBILE (current) - No padding/border on mobile, styled on desktop:
-             "md:border md:border-theme-lighter/30 md:rounded-2xl overflow-hidden p-0 md:p-4"
-
-          2. ALWAYS STYLED - Border and padding on all screens:
-             "border border-theme-lighter/30 rounded-2xl overflow-hidden p-4"
-
-          3. NO CONTAINER - Just cards, no wrapper styling:
-             "p-0"
-        */}
         <div className="overflow-hidden p-0">
           {/* Empty State */}
           {deck.cards.length === 0 && newCardEditors.length === 0 && (
@@ -336,11 +322,10 @@ export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back'
                 </div>
               ))}
 
-              {/* Card List with inline editing */}
               {sortedCards.map((card) => (
                 <div key={card.id}>
                   {editingCardId === card.id ? (
-                    // Show editor in place of card
+
                     <div className="border-b border-theme-lighter/30">
                       <InlineCardEditor
                         deckId={deck.id}
@@ -354,7 +339,6 @@ export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back'
                       />
                     </div>
                   ) : (
-                    // Show card normally
                     <CardListItem
                       card={card}
                       showBack={showAllBacks}
