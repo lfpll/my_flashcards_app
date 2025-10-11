@@ -30,10 +30,7 @@ export default function RatingButtons({ onRate }) {
   }, [onRate]);
 
   return (
-    <div className="mt-6 animate-fadeIn">
-      <p className="text-center text-theme-text mb-4 text-sm font-medium">
-        How well did you know this card? <span className="hidden md:inline">(Press 1-5)</span>
-      </p>
+    <div className="animate-fadeIn">
 
       {/* Single row on all screen sizes */}
       <div className="grid grid-cols-5 gap-2 md:gap-3">
@@ -48,7 +45,7 @@ export default function RatingButtons({ onRate }) {
               transition-all duration-200
               active:scale-95 hover:scale-[1.02] hover:shadow-md
               flex flex-col items-center justify-center
-              min-h-[80px] md:min-h-[90px]
+              min-h-20 md:min-h-24
               border-none
               focus:outline-none focus:ring-2 focus:ring-gray-400
             `}
@@ -56,7 +53,7 @@ export default function RatingButtons({ onRate }) {
           >
             <span className="text-base md:text-lg font-bold mb-1">{rating.value}</span>
             <span className="text-xs md:text-sm font-semibold">{rating.label}</span>
-            <span className="text-[10px] md:text-xs mt-0.5 text-center leading-tight opacity-80">{rating.description}</span>
+            <span className="text-[10px] md:text-xs mt-0.5 leading-tight opacity-80">{rating.description}</span>
           </button>
         ))}
       </div>

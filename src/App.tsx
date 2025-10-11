@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import TopNav from './components/layout/TopNav';
 import Dashboard from './components/layout/Dashboard';
-import DecksView from './components/layout/DecksView';
+import DecksView from './screens/DecksView/DecksView';
 import DeckDetail from './components/deck/DeckDetail';
 import StudySession from './components/study/StudySession';
 import { useFlashcards } from './context/FlashcardContext';

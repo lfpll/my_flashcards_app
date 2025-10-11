@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { useFlashcards } from '../../context/FlashcardContext';
 import { useTheme } from '../../context/ThemeContext';
-import DeckCard from './DeckCard';
+import DeckCard from '../deck/DeckCard';
 import CreateDeckModal from './CreateDeckModal';
 import Button from '../ui/Button';
 import AppHeader from '../layout/AppHeader';
@@ -84,7 +84,7 @@ export default function DeckList({ onSelectDeck }) {
 
       {/* Deck Grid */}
       {decks.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid">
           {decks.map((deck) => (
             <DeckCard
               key={deck.id}

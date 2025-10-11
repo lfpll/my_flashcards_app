@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { ImagePreviewProps } from '../../types/components';
+import { ImagePreviewProps } from '../../../types/components';
 
 export default function ImagePreview({ imageUrl, onRemove, alt }: ImagePreviewProps) {
   const [showFullImage, setShowFullImage] = useState(false);

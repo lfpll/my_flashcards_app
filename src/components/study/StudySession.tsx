@@ -8,7 +8,6 @@ import { useFlashcards } from '../../context/FlashcardContext';
 import { useGamification } from '../../context/GamificationContext';
 import { getDueCards, getWorstPerformingCards, updateCardWithRating } from '../../utils/spacedRepetition.jsx';
 import FlashCard from '../card/FlashCard';
-import RatingButtons from './RatingButtons';
 import Button from '../ui/Button';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import AppHeader from '../layout/AppHeader';
@@ -270,25 +269,26 @@ export default function StudySession({ deckId, onExit }) {
         </div>
 
         {/* Card Area */}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 py-8 overflow-hidden">
-          <div className="w-full max-w-2xl flex flex-col items-center gap-8">
+        <div className="flex-1 flex flex-col items-center px-4 py-8 overflow-hidden">
+          <div className="flex flex-col gap-8">
             {/* Card container with fixed positioning */}
-            <div className="w-full relative min-h-[320px]">
+            <div className="relative min-h-80">
               {/* Current card - slides out to left */}
               {currentCard && (
-                <div className={`w-full ${slidingOut ? 'animate-slideOutToLeft absolute top-0 left-0 right-0' : ''}`}>
+                <div className={slidingOut ? 'animate-slideOutToLeft absolute top-0 left-0 right-0' : ''}>
                   <FlashCard
                     key={`current-${currentIndex}`}
                     card={currentCard}
                     isFlipped={isFlipped}
                     onFlip={handleFlip}
+                    onRate={isFlipped && !slidingOut ? handleRating : undefined}
                   />
                 </div>
               )}
 
               {/* Next card - slides in from right */}
               {nextCard && slidingOut && (
-                <div className="w-full animate-slideInFromRight">
+                <div className="animate-slideInFromRight">
                   <FlashCard
                     key={`next-${nextIndex}`}
                     card={nextCard}
@@ -296,13 +296,6 @@ export default function StudySession({ deckId, onExit }) {
                     onFlip={() => {}}
                   />
                 </div>
-              )}
-            </div>
-
-            {/* Reserve space for rating buttons to prevent jumping */}
-            <div className="w-full min-h-[200px]">
-              {isFlipped && !slidingOut && (
-                <RatingButtons onRate={handleRating} />
               )}
             </div>
           </div>

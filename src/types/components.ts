@@ -78,6 +78,7 @@ export interface FlashCardProps {
   card: Card;
   isFlipped: boolean;
   onFlip: () => void;
+  onRate?: (rating: number) => void;
 }
 
 // Image Preview Props

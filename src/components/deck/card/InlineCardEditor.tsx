@@ -4,12 +4,12 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useFlashcards } from '../../context/FlashcardContext';
-import { useToast } from '../../context/ToastContext';
-import { convertImageToBase64, getImageFromClipboard } from '../../utils/imageUpload';
-import CardSideInput from './CardSideInput';
+import { useFlashcards } from '../../../context/FlashcardContext';
+import { useToast } from '../../../context/ToastContext';
+import { convertImageToBase64, getImageFromClipboard } from '../../../utils/imageUpload';
+import CardSideInput from '../CardSideInput';
 import ImagePreview from './ImagePreview';
-import { InlineCardEditorProps } from '../../types/components';
+import { InlineCardEditorProps } from '../../../types/components';
 
 export default function InlineCardEditor({ deckId, onSave, onCancel, card = null, autoFocus = false }: InlineCardEditorProps) {
   const { addCard, modifyCard } = useFlashcards();

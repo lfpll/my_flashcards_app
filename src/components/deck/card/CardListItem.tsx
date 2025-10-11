@@ -3,29 +3,8 @@
  * Displays a single card in the deck detail view with edit/delete actions
  */
 
-import { ReactNode } from 'react';
-import { CardListItemProps } from '../../types/components';
-
-// Helper function to render text with bold and underline markdown
-function renderTextWithFormatting(text: string): ReactNode[] | null {
-  if (!text) return null;
-  
-  // Split by both **bold** and __underline__ patterns
-  const parts = text.split(/(\*\*[^*]+\*\*|__[^_]+__)/g);
-  
-  return parts.map((part, index) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      // Remove the ** markers and render bold
-      const boldText = part.slice(2, -2);
-      return <strong key={index} className="font-bold">{boldText}</strong>;
-    } else if (part.startsWith('__') && part.endsWith('__')) {
-      // Remove the __ markers and render underline
-      const underlineText = part.slice(2, -2);
-      return <u key={index} className="underline">{underlineText}</u>;
-    }
-    return <span key={index}>{part}</span>;
-  });
-}
+import { CardListItemProps } from '../../../types/components';
+import { renderTextWithFormatting } from '../../ui/FormattedText';
 
 export default function CardListItem({ 
   card,

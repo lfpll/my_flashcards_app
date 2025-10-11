@@ -10,9 +10,9 @@ import { useConfirm } from '../../hooks/useConfirm';
 import { getDueCardsCount, getDeckSize } from '../../utils/storage.jsx';
 import Button from '../ui/Button';
 import InlineDeckEditor from './InlineDeckEditor';
-import InlineCardEditor from '../card/InlineCardEditor';
-import BulkAddForm from '../card/BulkAddForm';
-import CardListItem from '../card/CardListItem';
+import InlineCardEditor from './card/InlineCardEditor.tsx';
+import BulkAddForm from '../deck/BulkAddForm';
+import CardListItem from './card/CardListItem.tsx';
 
 export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back' }) {
   const { decks, removeDeck, removeCard } = useFlashcards();
