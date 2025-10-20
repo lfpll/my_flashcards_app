@@ -114,7 +114,6 @@ export default function StudySession({ deckId, onExit }) {
       setCurrentIndex(prev => prev + 1);
       setSlidingOut(false);
       setNextIndex(null);
-      setIsFlipped(false);
     }, 400); // Match animation duration
   };
 
@@ -149,7 +148,6 @@ export default function StudySession({ deckId, onExit }) {
       dueCards: cardsToStudy
     });
     setCurrentIndex(0);
-    setIsFlipped(false);
     setSessionComplete(false);
     setShowTransition(true);
   };
@@ -270,25 +268,24 @@ export default function StudySession({ deckId, onExit }) {
 
         {/* Card Area */}
         <div className="flex-1 flex flex-col items-center px-4 py-8 overflow-hidden">
-          <div className="flex flex-col gap-8">
             {/* Card container with fixed positioning */}
-            <div className="relative min-h-80">
+            <div className="relative min-w-[460px] min-h-[500px]">
               {/* Current card - slides out to left */}
               {currentCard && (
-                <div className={slidingOut ? 'animate-slideOutToLeft absolute top-0 left-0 right-0' : ''}>
+                <div className={`absolute top-0 left-0 right-0 ${slidingOut ? 'animate-slideOutToLeft' : ''}`}>
                   <FlashCard
                     key={`current-${currentIndex}`}
                     card={currentCard}
                     isFlipped={isFlipped}
                     onFlip={handleFlip}
-                    onRate={isFlipped && !slidingOut ? handleRating : undefined}
+                    onRate={!slidingOut ? handleRating : undefined}
                   />
                 </div>
               )}
 
               {/* Next card - slides in from right */}
               {nextCard && slidingOut && (
-                <div className="animate-slideInFromRight">
+                <div className="absolute top-0 left-0 right-0 animate-slideInFromRight">
                   <FlashCard
                     key={`next-${nextIndex}`}
                     card={nextCard}
@@ -299,7 +296,6 @@ export default function StudySession({ deckId, onExit }) {
               )}
             </div>
           </div>
-        </div>
       </div>
 
       <ConfirmDialog

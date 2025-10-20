@@ -19,7 +19,7 @@ export default function InlineCardEditor({ deckId, onSave, onCancel, card = null
   const [frontImageUrl, setFrontImageUrl] = useState(card?.frontImageUrl || '');
   const [backImageUrl, setBackImageUrl] = useState(card?.backImageUrl || '');
   
-  const frontTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const frontTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const frontFileInputRef = useRef<HTMLInputElement>(null);
   const backFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,19 +32,18 @@ export default function InlineCardEditor({ deckId, onSave, onCancel, card = null
     }
   }, [autoFocus]);
 
+  const hasContent = (text: string, imageUrl: string) => text.trim() || imageUrl.trim();
+
   const handleSave = () => {
     // At least front content (text or image) and back content (text or image) required
-    const hasFrontContent = front.trim() || frontImageUrl.trim();
-    const hasBackContent = back.trim() || backImageUrl.trim();
-    
-    if (!hasFrontContent || !hasBackContent) {
+    if (!hasContent(front, frontImageUrl) || !hasContent(back, backImageUrl)) {
       showToast('Both front and back need at least text or an image', 'error');
       return;
     }
 
     const cardData = {
-      front: front.trim() || '',
-      back: back.trim() || '',
+      front: front.trim(),
+      back: back.trim(),
       frontImageUrl: frontImageUrl.trim() || null,
       backImageUrl: backImageUrl.trim() || null,
     };
@@ -72,64 +71,31 @@ export default function InlineCardEditor({ deckId, onSave, onCancel, card = null
     }
   };
 
-  const handleBoldText = (textarea: HTMLTextAreaElement, side: 'front' | 'back') => {
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
+  const handleTextFormat = (
+    textarea: HTMLTextAreaElement,
+    side: 'front' | 'back',
+    delimiter: string
+  ) => {
+    //  Converts selected text to bold or underline
+    //  e.g. "Hello world" -> "Hello **world**"
+    const { selectionStart, selectionEnd, value } = textarea;
+    const selected = value.substring(selectionStart, selectionEnd);
     
-    if (selectedText) {
-      // Wrap selected text in ** for bold
-      const beforeText = textarea.value.substring(0, start);
-      const afterText = textarea.value.substring(end);
-      const newText = `${beforeText}**${selectedText}**${afterText}`;
-      
-      if (side === 'front') {
-        setFront(newText);
-        // Set cursor position after the bold text
-        setTimeout(() => {
-          textarea.selectionStart = start + 2;
-          textarea.selectionEnd = end + 2;
-          textarea.focus();
-        }, 0);
-      } else {
-        setBack(newText);
-        setTimeout(() => {
-          textarea.selectionStart = start + 2;
-          textarea.selectionEnd = end + 2;
-          textarea.focus();
-        }, 0);
-      }
-    }
+    if (!selected) return;
+  
+    const newValue = value.substring(0, selectionStart) + delimiter + selected + delimiter + value.substring(selectionEnd);
+    
+    (side === 'front' ? setFront : setBack)(newValue);
   };
 
-  const handleUnderlineText = (textarea: HTMLTextAreaElement, side: 'front' | 'back') => {
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    
-    if (selectedText) {
-      // Wrap selected text in __ for underline
-      const beforeText = textarea.value.substring(0, start);
-      const afterText = textarea.value.substring(end);
-      const newText = `${beforeText}__${selectedText}__${afterText}`;
-      
-      if (side === 'front') {
-        setFront(newText);
-        // Set cursor position after the underlined text
-        setTimeout(() => {
-          textarea.selectionStart = start + 2;
-          textarea.selectionEnd = end + 2;
-          textarea.focus();
-        }, 0);
-      } else {
-        setBack(newText);
-        setTimeout(() => {
-          textarea.selectionStart = start + 2;
-          textarea.selectionEnd = end + 2;
-          textarea.focus();
-        }, 0);
-      }
-    }
+  const handleBoldText = (textarea: HTMLTextAreaElement, side: 'front' | 'back') =>
+    handleTextFormat(textarea, side, '**');
+
+  const handleUnderlineText = (textarea: HTMLTextAreaElement, side: 'front' | 'back') =>
+    handleTextFormat(textarea, side, '__');
+
+  const setImageForSide = (side: 'front' | 'back', imageUrl: string) => {
+    side === 'front' ? setFrontImageUrl(imageUrl) : setBackImageUrl(imageUrl);
   };
 
   const handleFileUpload = async (file: File, side: 'front' | 'back') => {
@@ -137,13 +103,7 @@ export default function InlineCardEditor({ deckId, onSave, onCancel, card = null
 
     try {
       const base64 = await convertImageToBase64(file);
-      
-      if (side === 'front') {
-        setFrontImageUrl(base64 as string);
-      } else {
-        setBackImageUrl(base64 as string);
-      }
-      
+      setImageForSide(side, base64);
       showToast('Image uploaded successfully!', 'success');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to upload image';
@@ -152,31 +112,20 @@ export default function InlineCardEditor({ deckId, onSave, onCancel, card = null
   };
 
   const handleClearImage = (side: 'front' | 'back') => {
-    if (side === 'front') {
-      setFrontImageUrl('');
-      if (frontFileInputRef.current) frontFileInputRef.current.value = '';
-    } else {
-      setBackImageUrl('');
-      if (backFileInputRef.current) backFileInputRef.current.value = '';
-    }
+    setImageForSide(side, '');
+    const ref = side === 'front' ? frontFileInputRef : backFileInputRef;
+    if (ref.current) ref.current.value = '';
   };
 
   const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>, side: 'front' | 'back') => {
     const imageFile = getImageFromClipboard(e);
-    
+
     if (imageFile) {
-      // Prevent default paste behavior when image is found
       e.preventDefault();
-      
+
       try {
         const base64 = await convertImageToBase64(imageFile);
-        
-        if (side === 'front') {
-          setFrontImageUrl(base64 as string);
-        } else {
-          setBackImageUrl(base64 as string);
-        }
-        
+        setImageForSide(side, base64);
         showToast('Image pasted successfully!', 'success');
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to paste image';
@@ -205,7 +154,7 @@ export default function InlineCardEditor({ deckId, onSave, onCancel, card = null
           placeholder="Enter question or term (optional)"
           imageUrl={frontImageUrl}
           onImageClick={() => frontFileInputRef.current?.click()}
-          textareaRef={frontTextareaRef as any}
+          textareaRef={frontTextareaRef as React.RefObject<HTMLTextAreaElement>}
           side="front"
         />
 
@@ -269,7 +218,7 @@ export default function InlineCardEditor({ deckId, onSave, onCancel, card = null
             />
           )}
         </div>
-        
+        l
         {/* Empty cell to maintain grid alignment */}
         <div></div>
       </div>
@@ -292,7 +241,7 @@ export default function InlineCardEditor({ deckId, onSave, onCancel, card = null
         id="back-image-upload"
       />
 
-      {/* Hint - Hidden on mobile */}
+      
       <div className="mt-2 text-xs text-theme-textDim hidden md:block">
         <kbd className="px-1 py-0.5 bg-theme-bg rounded">Ctrl+Enter</kbd> save • <kbd className="px-1 py-0.5 bg-theme-bg rounded">Esc</kbd> cancel • <kbd className="px-1 py-0.5 bg-theme-bg rounded">Ctrl+V</kbd> paste image • <kbd className="px-1 py-0.5 bg-theme-bg rounded">Ctrl+B</kbd> bold • <kbd className="px-1 py-0.5 bg-theme-bg rounded">Ctrl+Shift+X</kbd> underline
       </div>

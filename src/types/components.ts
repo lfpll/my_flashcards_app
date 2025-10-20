@@ -2,7 +2,7 @@
  * Component Props Type Definitions
  */
 
-import { ReactNode, RefObject } from 'react';
+import { ReactNode } from 'react';
 import { Card, Deck, ButtonVariant, ButtonSize, SpinnerSize, ToastType } from './models';
 
 // Button Props
@@ -69,7 +69,7 @@ export interface CardSideInputProps {
   imageUrl: string;
   onImageClick: () => void;
   onAIImageClick?: () => void;
-  textareaRef?: RefObject<HTMLTextAreaElement>;
+  textareaRef?: React.RefObject<HTMLTextAreaElement>;
   side: 'front' | 'back';
 }
 

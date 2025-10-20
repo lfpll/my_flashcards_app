@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import TopNav from './components/layout/TopNav';
 import Dashboard from './components/layout/Dashboard';
-import DecksView from './screens/DecksView/DecksView';
+import DecksView from './components/DecksView/DecksView';
 import DeckDetail from './components/deck/DeckDetail';
 import StudySession from './components/study/StudySession';
 import { useFlashcards } from './context/FlashcardContext';
 import { useGamification } from './context/GamificationContext';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import { getDueCardsCount } from './utils/storage';
-import { View } from './types/models';
 
 function App() {
   const { loading, decks } = useFlashcards();
