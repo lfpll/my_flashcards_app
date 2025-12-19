@@ -68,9 +68,11 @@ export function updateCardWithRating(card: Card, rating: number): Card {
     updatedCard.easeFactor = 3.5;
   }
   
-  // Set next review date
+  // Set next review date (cap interval at reasonable max to prevent overflow)
   const millisecondsPerDay = 24 * 60 * 60 * 1000;
-  updatedCard.nextReview = Date.now() + (updatedCard.interval * millisecondsPerDay);
+  const maxInterval = 365; // Cap at 1 year max
+  const safeInterval = Math.min(updatedCard.interval, maxInterval);
+  updatedCard.nextReview = Date.now() + (safeInterval * millisecondsPerDay);
   updatedCard.lastReviewed = Date.now();
   
   // Add to review history

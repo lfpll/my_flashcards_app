@@ -8,13 +8,13 @@ import { Card, Deck, GamificationStats, ToastType } from './models';
 export interface FlashcardContextType {
   decks: Deck[];
   loading: boolean;
-  refreshDecks: () => void;
-  addDeck: (name: string, description: string) => Deck;
-  modifyDeck: (deckId: string, updates: Partial<Deck>) => Deck | null;
-  removeDeck: (deckId: string) => boolean;
-  addCard: (deckId: string, cardData: Partial<Card>) => Card;
-  modifyCard: (deckId: string, cardId: string, updates: Partial<Card>) => Card | null;
-  removeCard: (deckId: string, cardId: string) => boolean;
+  refreshDecks: () => Promise<void>;
+  addDeck: (name: string, description: string) => Promise<Deck>;
+  modifyDeck: (deckId: string, updates: Partial<Deck>) => Promise<Deck | null>;
+  removeDeck: (deckId: string) => Promise<boolean>;
+  addCard: (deckId: string, cardData: Partial<Card>) => Promise<Card>;
+  modifyCard: (deckId: string, cardId: string, updates: Partial<Card>) => Promise<Card | null>;
+  removeCard: (deckId: string, cardId: string) => Promise<boolean>;
 }
 
 // Toast Context

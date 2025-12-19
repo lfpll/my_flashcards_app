@@ -81,15 +81,17 @@ export default function Modal({ isOpen, onClose, title, children }) {
     >
       <div 
         ref={modalRef}
-        className="bg-theme-card rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+        className="rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
+        style={{ backgroundColor: 'var(--card-color)', color: 'var(--text-color)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-theme-lighter">
+        <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: 'var(--lighter-color)' }}>
           <h2 id="modal-title" className="text-xl font-semibold">{title}</h2>
           <button
             onClick={onClose}
-            className="text-theme-textDim hover:text-theme-text transition-colors text-2xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="transition-colors text-2xl leading-none min-w-[44px] min-h-[44px] flex items-center justify-center"
+            style={{ color: 'var(--text-dim-color)' }}
             aria-label="Close modal"
           >
             ×

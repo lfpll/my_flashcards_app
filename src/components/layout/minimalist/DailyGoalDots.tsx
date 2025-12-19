@@ -39,3 +39,13 @@ export default function DailyGoalDots({ cardsStudiedToday, dailyGoal }: DailyGoa
 
 
 
+
+
+
+
+
+
+
+
+
+

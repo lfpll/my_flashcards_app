@@ -23,11 +23,12 @@ export default function ConfirmDialog({
       onClick={onCancel}
     >
       <div 
-        className="bg-theme-card rounded-xl shadow-2xl max-w-md w-full p-6"
+        className="rounded-xl shadow-2xl max-w-md w-full p-6"
+        style={{ backgroundColor: 'var(--card-color)', color: 'var(--text-color)' }}
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-xl font-semibold mb-3">{title}</h3>
-        <p className="text-theme-textDim mb-6">{message}</p>
+        <p className="mb-6" style={{ color: 'var(--text-dim-color)' }}>{message}</p>
         
         <div className="flex gap-3">
           <Button

@@ -41,13 +41,11 @@ function CardSide({ side, text, imageUrl, imageError, onImageError }: CardSidePr
       {/* Content */}
       <div className={`flex flex-col items-center justify-center flex-1 mt-4  ${isFront ? 'mb-10' : ''}`}>
         {text && (
-          <div className="max-h-24 md:max-h-32 max-w-[90%] overflow-hidden">
             <ReadableText>
               <h3 className={` font-bold leading-tight mb-4 text-theme-text ${!imageUrl? 'text-[clamp(1rem,8vw,2rem)]' : 'text-[clamp(1rem,4vw,1.5rem)]'}`}>
                 {renderTextWithFormatting(text)}
               </h3>
             </ReadableText>
-          </div>
         )}
         {imageUrl && !imageError && (
           <img
@@ -69,6 +67,7 @@ export default function FlashCard({ card, onFlip, onRate }: FlashCardProps) {
   const [frontImageError, setFrontImageError] = useState(false);
   const [backImageError, setBackImageError] = useState(false);
   const [isFront,setIsFront] = useState(true)
+  const [wasFlipped,setWasFlipped] = useState(false)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === ' ' || e.key === 'Enter') {
@@ -79,6 +78,7 @@ export default function FlashCard({ card, onFlip, onRate }: FlashCardProps) {
 
   const handleFlip = () => {
     setIsFront(!isFront);
+    setWasFlipped(true)
     onFlip();
   };
 
@@ -114,7 +114,7 @@ export default function FlashCard({ card, onFlip, onRate }: FlashCardProps) {
       {/* Bottom section below the card */}
 
       <div className="text-center text-sm text-theme-textDim mt-4">
-      {isFront ? (
+      {!isFront ? (
   "Click to reveal answer"
 ) : (
   <>
@@ -122,9 +122,10 @@ export default function FlashCard({ card, onFlip, onRate }: FlashCardProps) {
   </>
 )}
     </div>
-       {
+    {wasFlipped && (
     onRate && <RatingButtons onRate={onRate} />
-  }
+    )}
+  
     </div >
   );
 }

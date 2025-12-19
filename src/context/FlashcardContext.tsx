@@ -11,60 +11,63 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
 
   // Load decks on mount
   useEffect(() => {
-    const loadedDecks = storage.getAllDecks();
-    setDecks(loadedDecks);
-    setLoading(false);
+    const loadDecks = async () => {
+      const loadedDecks = await storage.getAllDecks();
+      setDecks(loadedDecks);
+      setLoading(false);
+    };
+    loadDecks();
   }, []);
 
   // Refresh decks from storage
-  const refreshDecks = useCallback(() => {
-    const loadedDecks = storage.getAllDecks();
+  const refreshDecks = useCallback(async () => {
+    const loadedDecks = await storage.getAllDecks();
     setDecks(loadedDecks);
   }, []);
 
   // Deck operations
-  const addDeck = useCallback((name: string, description: string): Deck => {
-    const newDeck = storage.createDeck(name, description);
-    refreshDecks();
+  const addDeck = useCallback(async (name: string, description: string): Promise<Deck> => {
+    const newDeck = await storage.createDeck(name, description);
+    await refreshDecks();
     return newDeck;
   }, [refreshDecks]);
 
-  const modifyDeck = useCallback((deckId: string, updates: Partial<Deck>): Deck | null => {
-    const updated = storage.updateDeck(deckId, updates);
-    refreshDecks();
+  const modifyDeck = useCallback(async (deckId: string, updates: Partial<Deck>): Promise<Deck | null> => {
+    const updated = await storage.updateDeck(deckId, updates);
+    await refreshDecks();
     return updated;
   }, [refreshDecks]);
 
-  const removeDeck = useCallback((deckId: string): boolean => {
-    const success = storage.deleteDeck(deckId);
+  const removeDeck = useCallback(async (deckId: string): Promise<boolean> => {
+    const success = await storage.deleteDeck(deckId);
     if (success) {
-      refreshDecks();
+      await refreshDecks();
     }
     return success;
   }, [refreshDecks]);
 
   // Card operations
-  const addCard = useCallback((deckId: string, cardData: Partial<Card>): Card => {
-    const newCard = storage.createCard(deckId, cardData);
-    refreshDecks();
+  const addCard = useCallback(async (deckId: string, cardData: Partial<Card>): Promise<Card> => {
+    const newCard = await storage.createCard(deckId, cardData);
+    await refreshDecks();
     return newCard;
   }, [refreshDecks]);
 
-  const modifyCard = useCallback((deckId: string, cardId: string, updates: Partial<Card>): Card | null => {
-    const updated = storage.updateCard(deckId, cardId, updates);
-    refreshDecks();
+  const modifyCard = useCallback(async (deckId: string, cardId: string, updates: Partial<Card>): Promise<Card | null> => {
+    const updated = await storage.updateCard(deckId, cardId, updates);
+    await refreshDecks();
     return updated;
   }, [refreshDecks]);
 
-  const removeCard = useCallback((deckId: string, cardId: string): boolean => {
-    const success = storage.deleteCard(deckId, cardId);
+  const removeCard = useCallback(async (deckId: string, cardId: string): Promise<boolean> => {
+    const success = await storage.deleteCard(deckId, cardId);
     if (success) {
-      refreshDecks();
+      await refreshDecks();
     }
     return success;
   }, [refreshDecks]);
 
-  const value: FlashcardContextType = {
+  const value = {
     decks,
     loading,
     refreshDecks,

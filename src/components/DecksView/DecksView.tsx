@@ -24,7 +24,7 @@ export default function DecksView({ onSelectDeck, onCreateDeck }) {
         ...deck,
         dueCount: getDueCardsCount(deck),
         progress: deck.cards.length > 0 
-          ? Math.round((deck.cards.filter(c => c.reviewData?.easeFactor > 2.5).length / deck.cards.length) * 100)
+          ? Math.round((deck.cards.filter(c => c.easeFactor > 2.8).length / deck.cards.length) * 100)
           : 0,
         lastStudied: Math.floor(Math.random() * 24) // Mock data
       }))

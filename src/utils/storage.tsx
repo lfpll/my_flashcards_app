@@ -1,8 +1,10 @@
 /**
- * LocalStorage utility functions for flashcard data persistence
+ * Storage utility functions for flashcard data persistence
+ * Uses adapter pattern to switch between localStorage and Supabase
  */
 
 import { Card, Deck, DeckSize } from '../types/models';
+import { getStorageAdapter } from './storageAdapter';
 
 interface StorageData {
   decks: Deck[];
@@ -108,202 +110,76 @@ export function getStorageInfo(): StorageInfo {
 
 /**
  * Get all decks
- * @returns {Deck[]} Array of deck objects
+ * @returns {Promise<Deck[]>} Array of deck objects
  */
-export function getAllDecks(): Deck[] {
-  return loadData().decks;
+export async function getAllDecks(): Promise<Deck[]> {
+  const adapter = await getStorageAdapter();
+  return adapter.getAllDecks();
 }
 
 /**
  * Get or initialize streak data
- * @returns {StreakData} Streak data
+ * @returns {Promise<StreakData>} Streak data
  */
-export function getStreakData() {
-  try {
-    const data = localStorage.getItem('flashcards_streak');
-    if (!data) {
-      return {
-        currentStreak: 0,
-        lastStudyDate: null,
-        longestStreak: 0,
-      };
-    }
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error loading streak data:', error);
-    return {
-      currentStreak: 0,
-      lastStudyDate: null,
-      longestStreak: 0,
-    };
-  }
+export async function getStreakData(): Promise<any> {
+  const adapter = await getStorageAdapter();
+  return adapter.getStreakData();
 }
 
 /**
  * Update streak after studying
- * @returns {StreakData} Updated streak data
+ * @returns {Promise<StreakData>} Updated streak data
  */
-export function updateStreak() {
-  const streak = getStreakData();
-  const today = new Date().toDateString();
-  const lastDate = streak.lastStudyDate ? new Date(streak.lastStudyDate).toDateString() : null;
-
-  if (lastDate === today) {
-    // Already studied today
-    return streak;
-  }
-
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toDateString();
-
-  if (lastDate === yesterdayStr) {
-    // Continue streak
-    streak.currentStreak += 1;
-  } else {
-    // Streak broken, restart
-    streak.currentStreak = 1;
-  }
-
-  streak.lastStudyDate = new Date().toISOString();
-  
-  if (streak.currentStreak > streak.longestStreak) {
-    streak.longestStreak = streak.currentStreak;
-  }
-
-  try {
-    localStorage.setItem('flashcards_streak', JSON.stringify(streak));
-  } catch (error) {
-    console.error('Error saving streak data:', error);
-  }
-
-  return streak;
+export async function updateStreak(): Promise<any> {
+  const adapter = await getStorageAdapter();
+  return adapter.updateStreak();
 }
 
 /**
  * Get deck by ID
  * @param {string} deckId - Deck ID
- * @returns {Deck|undefined} Deck object or undefined
+ * @returns {Promise<Deck|undefined>} Deck object or undefined
  */
-export function getDeckById(deckId: string): Deck | undefined {
-  const data = loadData();
-  return data.decks.find(deck => deck.id === deckId);
+export async function getDeckById(deckId: string): Promise<Deck | undefined> {
+  const adapter = await getStorageAdapter();
+  return adapter.getDeckById(deckId);
 }
 
 /**
  * Create a new deck
  */
-export function createDeck(name: string, description: string = ''): Deck {
-  const data = loadData();
-  const newDeck = {
-    id: crypto.randomUUID(),
-    name,
-    description,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    cards: []
-  };
-  data.decks.push(newDeck);
-  saveData(data);
-  return newDeck;
+export async function createDeck(name: string, description: string = ''): Promise<Deck> {
+  const adapter = await getStorageAdapter();
+  return adapter.createDeck(name, description);
 }
 
 
-export function updateDeck(deckId: string, updates: Partial<Deck>): Deck | null {
-  const data = loadData();
-  const deckIndex = data.decks.findIndex(deck => deck.id === deckId);
-  
-  if (deckIndex === -1) return null;
-  
-  data.decks[deckIndex] = {
-    ...data.decks[deckIndex],
-    ...updates,
-    updatedAt: Date.now()
-  };
-  
-  saveData(data);
-  return data.decks[deckIndex];
+export async function updateDeck(deckId: string, updates: Partial<Deck>): Promise<Deck | null> {
+  const adapter = await getStorageAdapter();
+  return adapter.updateDeck(deckId, updates);
 }
 
-export function deleteDeck(deckId: string): boolean {
-  const data = loadData();
-  const initialLength = data.decks.length;
-  data.decks = data.decks.filter(deck => deck.id !== deckId);
-  
-  if (data.decks.length < initialLength) {
-    saveData(data);
-    return true;
-  }
-  
-  return false;
+export async function deleteDeck(deckId: string): Promise<boolean> {
+  const adapter = await getStorageAdapter();
+  return adapter.deleteDeck(deckId);
 }
 
 
-export function createCard(deckId: string, cardData: Partial<Card>): Card {
-  const data = loadData();
-  const deck = data.decks.find(d => d.id === deckId);
-  
-  if (!deck) return null;
-  
-  const newCard = {
-    id: crypto.randomUUID(),
-    front: cardData.front,
-    back: cardData.back,
-    frontImageUrl: cardData.frontImageUrl || null,
-    backImageUrl: cardData.backImageUrl || null,
-    easeFactor: 2.5,
-    interval: 1,
-    repetitions: 0,
-    nextReview: Date.now(), // Due immediately for new cards
-    lastReviewed: null,
-    reviews: []
-  };
-  
-  deck.cards.push(newCard);
-  deck.updatedAt = Date.now();
-  saveData(data);
-  
-  return newCard;
+export async function createCard(deckId: string, cardData: Partial<Card>): Promise<Card> {
+  const adapter = await getStorageAdapter();
+  return adapter.createCard(deckId, cardData);
 }
 
 
-export function updateCard(deckId: string, cardId: string, updates: Partial<Card>): Card | null {
-  const data = loadData();
-  const deck = data.decks.find(d => d.id === deckId);
-  
-  if (!deck) return null;
-  
-  const cardIndex = deck.cards.findIndex(c => c.id === cardId);
-  if (cardIndex === -1) return null;
-  
-  deck.cards[cardIndex] = {
-    ...deck.cards[cardIndex],
-    ...updates
-  };
-  
-  deck.updatedAt = Date.now();
-  saveData(data);
-  
-  return deck.cards[cardIndex];
+export async function updateCard(deckId: string, cardId: string, updates: Partial<Card>): Promise<Card | null> {
+  const adapter = await getStorageAdapter();
+  return adapter.updateCard(deckId, cardId, updates);
 }
 
 
-export function deleteCard(deckId: string, cardId: string): boolean {
-  const data = loadData();
-  const deck = data.decks.find(d => d.id === deckId);
-  
-  if (!deck) return false;
-  
-  const initialLength = deck.cards.length;
-  deck.cards = deck.cards.filter(c => c.id !== cardId);
-  
-  if (deck.cards.length < initialLength) {
-    deck.updatedAt = Date.now();
-    saveData(data);
-    return true;
-  }
-  
-  return false;
+export async function deleteCard(deckId: string, cardId: string): Promise<boolean> {
+  const adapter = await getStorageAdapter();
+  return adapter.deleteCard(deckId, cardId);
 }
 
 export function getDueCardsCount(deck: Deck): number {

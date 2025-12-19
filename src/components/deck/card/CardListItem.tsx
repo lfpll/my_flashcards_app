@@ -13,15 +13,37 @@ export default function CardListItem({
   onDelete 
 }: CardListItemProps) {
 
+  // Calculate days since last review
+  const getDaysSinceReview = (): string => {
+    if (card.repetitions === 0 || !card.nextReview) return 'Never reviewed';
+    
+    const now = Date.now();
+    const lastReviewed = card.nextReview - (card.interval * 24 * 60 * 60 * 1000);
+    const daysAgo = Math.floor((now - lastReviewed) / (24 * 60 * 60 * 1000));
+    
+    if (daysAgo < 1) return 'Today';
+    if (daysAgo === 1) return '1 day ago';
+    if (daysAgo < 7) return `${daysAgo} days ago`;
+    if (daysAgo < 30) {
+      const weeks = Math.floor(daysAgo / 7);
+      return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+    }
+    const months = Math.floor(daysAgo / 30);
+    return `${months} month${months > 1 ? 's' : ''} ago`;
+  };
+
   const getStatusBarColor = (): string => {
-    // Gray for new cards (never reviewed)
-    if (!card.reviews || card.reviews.length === 0) return 'bg-theme-lighter';
+    // Gray for new cards (never reviewed - repetitions === 0)
+    if (card.repetitions === 0) return 'bg-theme-lighter';
 
     const ef = card.easeFactor;
-    if (ef < 1.8) return 'bg-error';        // Red: Very Hard (struggling)
-    if (ef < 2.2) return 'bg-warning';      // Yellow: Hard
-    if (ef < 2.5) return 'bg-info';         // Blue: Below Average
-    if (ef < 2.7) return 'bg-accent-light'; // Light Blue: Average (new cards reviewed once)
+    
+    // Adjust thresholds based on typical SM-2 ranges
+    // Most cards will start at 2.5 and can go up to 3.5 (max)
+    if (ef < 2.0) return 'bg-error';        // Red: Very Hard (struggling)
+    if (ef < 2.5) return 'bg-warning';      // Yellow: Hard
+    if (ef < 2.8) return 'bg-info';         // Blue: Below Average
+    if (ef < 3.1) return 'bg-accent-light'; // Light Blue: Average
     return 'bg-success';                     // Green: Easy (mastered)
   };
 
@@ -49,6 +71,11 @@ export default function CardListItem({
 
       {/* Content - Responsive layout */}
       <div className="pl-4 pr-10 md:pr-12">
+        {/* Last reviewed info */}
+        <div className="text-xs text-theme-textDim mb-2">
+          {getDaysSinceReview()}
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {/* Front */}
           <div>

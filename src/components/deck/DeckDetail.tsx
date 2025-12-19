@@ -39,13 +39,13 @@ export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back'
 
     if (sortBy === 'easeFactor') {
       return cards.sort((a, b) => {
-        // Cards without reviews go to the end
-        const aHasReviews = a.reviews && a.reviews.length > 0;
-        const bHasReviews = b.reviews && b.reviews.length > 0;
+        // Cards without repetitions (never reviewed) go to the end
+        const aHasReps = (a.repetitions || 0) > 0;
+        const bHasReps = (b.repetitions || 0) > 0;
 
-        if (!aHasReviews && !bHasReviews) return 0;
-        if (!aHasReviews) return 1;
-        if (!bHasReviews) return -1;
+        if (!aHasReps && !bHasReps) return 0;
+        if (!aHasReps) return 1;
+        if (!bHasReps) return -1;
 
         // Sort by ease factor (lowest first - hardest cards first)
         return a.easeFactor - b.easeFactor;

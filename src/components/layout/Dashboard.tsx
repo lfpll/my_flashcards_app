@@ -30,7 +30,7 @@ export default function Dashboard({ onSelectDeck, onStudyAll, onCreateDeck, onNa
         ...deck,
         dueCount: getDueCardsCount(deck),
         progress: deck.cards.length > 0 
-          ? Math.round((deck.cards.filter(c => c.reviewData?.easeFactor > 2.5).length / deck.cards.length) * 100)
+          ? Math.round((deck.cards.filter(c => c.easeFactor > 2.8).length / deck.cards.length) * 100)
           : 0
       }))
       .sort((a, b) => b.dueCount - a.dueCount);

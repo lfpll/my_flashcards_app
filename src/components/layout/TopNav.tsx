@@ -5,13 +5,16 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function TopNav({ 
   currentView,
   onNavigate,
   onCreateDeck,
+  onShowAuth,
   userStreak = 0
 }) {
+  const { user, signOut } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { theme, cycleTheme } = useTheme();
 
@@ -121,7 +124,16 @@ export default function TopNav({
               )}
             </button>
             
-            {/* Profile Menu */}
+            {/* Auth Button */}
+            {!user ? (
+              <button
+                onClick={onShowAuth}
+                className="px-4 py-2 rounded-lg font-medium transition-all bg-accent-primary text-white hover:opacity-90"
+              >
+                Sign In
+              </button>
+            ) : (
+              /* Profile Menu */
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
@@ -168,7 +180,12 @@ export default function TopNav({
                       </button>
                     </div>
                     <div className="py-1" style={{ borderTop: '1px solid var(--border-color)' }}>
-                      <button className="w-full px-4 py-2 text-left text-sm text-error hover:bg-error/10 transition-colors flex items-center gap-2">
+                      <button 
+                        onClick={() => {
+                          signOut();
+                          setShowProfileMenu(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-error hover:bg-error/10 transition-colors flex items-center gap-2">
                         <svg className="w-4 h-4 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
@@ -179,6 +196,7 @@ export default function TopNav({
                 </>
               )}
             </div>
+            )}
           </div>
         </div>
 

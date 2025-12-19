@@ -92,6 +92,13 @@ export default function StudySession({ deckId, onExit }) {
     }
   }, [showTransition]);
 
+  // Record study session when complete (only once)
+  useEffect(() => {
+    if (sessionComplete && dueCards.length > 0) {
+      recordStudySession(dueCards.length);
+    }
+  }, [sessionComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFlip = () => {
     if (!isFlipped) {
       setIsFlipped(true);
@@ -103,6 +110,13 @@ export default function StudySession({ deckId, onExit }) {
 
     // Update card with spaced repetition algorithm
     const updatedCard = updateCardWithRating(currentCard, rating);
+    console.log('Updated card:', {
+      id: updatedCard.id,
+      easeFactor: updatedCard.easeFactor,
+      interval: updatedCard.interval,
+      nextReviewRaw: updatedCard.nextReview,
+      nextReview: updatedCard.nextReview ? new Date(updatedCard.nextReview) : null
+    });
     modifyCard(deckId, currentCard.id, updatedCard);
 
     // Start slide out transition
@@ -198,9 +212,6 @@ export default function StudySession({ deckId, onExit }) {
   }
 
   if (sessionComplete) {
-    // Record the study session for gamification
-    recordStudySession(dueCards.length);
-
     const hasCards = deck.cards && deck.cards.length > 0;
 
     return (
