@@ -2,28 +2,37 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import * as storage from '../utils/storage';
 import { Deck, Card } from '../types/models';
 import { FlashcardContextType } from '../types/contexts';
+import { useAuth } from '../contexts/AuthContext';
 
 const FlashcardContext = createContext<FlashcardContextType | null>(null);
 
 export function FlashcardProvider({ children }: { children: ReactNode }) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const { user, migrationStatus } = useAuth();
 
-  // Load decks on mount
-  useEffect(() => {
-    const loadDecks = async () => {
+  // Load decks function
+  const loadDecks = useCallback(async () => {
+    setLoading(true);
+    try {
       const loadedDecks = await storage.getAllDecks();
       setDecks(loadedDecks);
+    } catch (error) {
+      console.error('Error loading decks:', error);
+    } finally {
       setLoading(false);
-    };
-    loadDecks();
+    }
   }, []);
+
+  // Load decks on mount, when user changes, or when migration completes successfully
+  useEffect(() => {
+    loadDecks();
+  }, [loadDecks, user, migrationStatus]); // Refresh when user changes (login/logout) or migration completes
 
   // Refresh decks from storage
   const refreshDecks = useCallback(async () => {
-    const loadedDecks = await storage.getAllDecks();
-    setDecks(loadedDecks);
-  }, []);
+    await loadDecks();
+  }, [loadDecks]);
 
   // Deck operations
   const addDeck = useCallback(async (name: string, description: string): Promise<Deck> => {

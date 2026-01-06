@@ -2,6 +2,12 @@ import { supabase } from '../lib/supabase';
 
 const MIGRATION_FLAG = 'flashcards_migrated';
 
+export interface MigrationResult {
+  success: boolean;
+  error?: any;
+  message?: string;
+}
+
 // Simple helper: convert to ISO string, or use current date if invalid
 function safeToISOString(value: any): string {
   try {
@@ -15,142 +21,243 @@ function safeToISOString(value: any): string {
   return new Date().toISOString();
 }
 
-export async function migrateLocalStorageToSupabase(userId: string): Promise<void> {
+export async function migrateLocalStorageToSupabase(userId: string): Promise<MigrationResult> {
   const migrationKey = `${MIGRATION_FLAG}_${userId}`;
   
   try {
     // If Supabase is not configured, skip migration
     if (!supabase) {
       console.warn('Supabase not configured, skipping migration');
-      return;
-    }
-    
-    // Check if already migrated FOR THIS USER
-    if (localStorage.getItem(migrationKey)) {
-      console.log('Data already migrated for this user');
-      return;
+      return {
+        success: false,
+        message: 'Supabase not configured'
+      };
     }
     
     // Load localStorage data
     const dataStr = localStorage.getItem('flashcards_data');
     if (!dataStr) {
       console.log('No local data to migrate');
-      // Only set flag if we successfully checked and there's nothing to migrate
-      localStorage.setItem(migrationKey, 'true');
-      return;
+      return {
+        success: true,
+        message: 'No local data to migrate'
+      };
     }
     
     const data = JSON.parse(dataStr);
-    const decks = data.decks || [];
+    const localDecks = data.decks || [];
     
-    if (decks.length === 0) {
+    if (localDecks.length === 0) {
       console.log('No decks to migrate');
-      localStorage.setItem(migrationKey, 'true');
-      return;
+      return {
+        success: true,
+        message: 'No decks to migrate'
+      };
     }
     
-    console.log(`🔄 Starting ATOMIC migration of ${decks.length} decks to Supabase...`);
+    // Get existing decks from Supabase to avoid duplicates
+    const { data: existingDecks } = await supabase
+      .from('decks')
+      .select('id, name, created_at, updated_at')
+      .eq('user_id', userId);
     
-    // Track all errors - if ANY error occurs, migration fails
+    const existingDeckMap = new Map(
+      (existingDecks || []).map((d: any) => [d.name.toLowerCase().trim(), d])
+    );
+    
+    console.log(`🔄 Syncing ${localDecks.length} local decks with Supabase...`);
+    
+    // Track all errors
     const errors: any[] = [];
     const migratedDeckIds: string[] = [];
     
-    // Migrate each deck
-    for (const deck of decks) {
+    // Migrate each deck (merge intelligently)
+    for (const localDeck of localDecks) {
       try {
-        // Insert deck with safe date handling
-        const { data: newDeck, error: deckError } = await supabase
-          .from('decks')
-          .insert({
-            user_id: userId,
-            name: deck.name,
-            description: deck.description,
-            created_at: safeToISOString(deck.createdAt),
-            updated_at: safeToISOString(deck.updatedAt)
-          })
-          .select()
-          .single();
+        const deckKey = localDeck.name.toLowerCase().trim();
+        const existingDeck = existingDeckMap.get(deckKey);
         
-        if (deckError) {
-          errors.push({ type: 'deck', name: deck.name, error: deckError });
-          console.error(`❌ Failed to migrate deck "${deck.name}":`, deckError);
-          throw deckError; // Stop immediately on deck error
-        }
+        let deckId: string;
         
-        console.log(`✅ Migrated deck: "${deck.name}"`);
-        migratedDeckIds.push(newDeck.id);
-        
-        // Insert cards for this deck with safe date handling
-        if (deck.cards && deck.cards.length > 0) {
-          const cardsToInsert = deck.cards.map((card: any) => ({
-            deck_id: newDeck.id,
-            user_id: userId,
-            front: card.front,
-            back: card.back,
-            front_image: card.frontImageUrl || null,
-            back_image: card.backImageUrl || null,
-            ease_factor: card.easeFactor || 2.5,
-            interval: card.interval || 0,
-            repetitions: card.repetitions || 0,
-            next_review: safeToISOString(card.nextReview),
-            created_at: safeToISOString(card.createdAt)
-          }));
+        if (existingDeck) {
+          // Deck exists - check if local is newer
+          const localUpdated = new Date(localDeck.updatedAt || localDeck.createdAt).getTime();
+          const supabaseUpdated = new Date(existingDeck.updated_at).getTime();
           
-          const { error: cardsError } = await supabase
-            .from('cards')
-            .insert(cardsToInsert);
-          
-          if (cardsError) {
-            errors.push({ type: 'cards', deck: deck.name, error: cardsError });
-            console.error(`❌ Failed to migrate ${cardsToInsert.length} cards for deck "${deck.name}":`, cardsError);
-            throw cardsError; // Stop immediately on cards error
+          if (localUpdated > supabaseUpdated) {
+            // Local is newer - update Supabase deck
+            const { error: updateError } = await supabase
+              .from('decks')
+              .update({
+                description: localDeck.description,
+                updated_at: safeToISOString(localDeck.updatedAt)
+              })
+              .eq('id', existingDeck.id);
+            
+            if (updateError) {
+              console.warn(`⚠️ Failed to update deck "${localDeck.name}":`, updateError);
+            } else {
+              console.log(`🔄 Updated deck: "${localDeck.name}" (local was newer)`);
+            }
+          } else {
+            console.log(`⏭️ Skipping deck "${localDeck.name}" (Supabase is newer or same)`);
           }
           
-          console.log(`  ✅ Migrated ${cardsToInsert.length} cards`);
+          deckId = existingDeck.id;
+        } else {
+          // New deck - insert it
+          const { data: newDeck, error: deckError } = await supabase
+            .from('decks')
+            .insert({
+              user_id: userId,
+              name: localDeck.name,
+              description: localDeck.description,
+              created_at: safeToISOString(localDeck.createdAt),
+              updated_at: safeToISOString(localDeck.updatedAt)
+            })
+            .select()
+            .single();
+          
+          if (deckError) {
+            errors.push({ type: 'deck', name: localDeck.name, error: deckError });
+            console.error(`❌ Failed to migrate deck "${localDeck.name}":`, deckError);
+            continue; // Continue with other decks instead of failing completely
+          }
+          
+          console.log(`✅ Migrated deck: "${localDeck.name}"`);
+          deckId = newDeck.id;
+          migratedDeckIds.push(newDeck.id);
+        }
+        
+        // Sync cards for this deck
+        if (localDeck.cards && localDeck.cards.length > 0) {
+          // Get existing cards for this deck
+          const { data: existingCards } = await supabase
+            .from('cards')
+            .select('id, front, back, created_at')
+            .eq('deck_id', deckId)
+            .eq('user_id', userId);
+          
+          const existingCardMap = new Map(
+            (existingCards || []).map((c: any) => [
+              `${c.front.toLowerCase().trim()}|${c.back.toLowerCase().trim()}`,
+              c
+            ])
+          );
+          
+          const cardsToInsert: any[] = [];
+          
+          for (const localCard of localDeck.cards) {
+            const cardKey = `${(localCard.front || '').toLowerCase().trim()}|${(localCard.back || '').toLowerCase().trim()}`;
+            const existingCard = existingCardMap.get(cardKey);
+            
+            if (!existingCard) {
+              // New card - add to insert list
+              cardsToInsert.push({
+                deck_id: deckId,
+                user_id: userId,
+                front: localCard.front,
+                back: localCard.back,
+                front_image: localCard.frontImageUrl || null,
+                back_image: localCard.backImageUrl || null,
+                ease_factor: localCard.easeFactor || 2.5,
+                interval: localCard.interval || 0,
+                repetitions: localCard.repetitions || 0,
+                next_review: safeToISOString(localCard.nextReview),
+                created_at: safeToISOString(localCard.createdAt)
+              });
+            }
+            // If card exists, we skip it (Supabase version is authoritative)
+          }
+          
+          if (cardsToInsert.length > 0) {
+            const { error: cardsError } = await supabase
+              .from('cards')
+              .insert(cardsToInsert);
+            
+            if (cardsError) {
+              errors.push({ type: 'cards', deck: localDeck.name, error: cardsError });
+              console.error(`❌ Failed to migrate ${cardsToInsert.length} cards for deck "${localDeck.name}":`, cardsError);
+            } else {
+              console.log(`  ✅ Migrated ${cardsToInsert.length} new cards`);
+            }
+          } else {
+            console.log(`  ⏭️ No new cards to migrate for "${localDeck.name}"`);
+          }
         }
       } catch (error) {
-        // Rollback: Delete any decks we created
-        console.warn('🔄 Rolling back migration...');
-        for (const deckId of migratedDeckIds) {
-          await supabase.from('decks').delete().eq('id', deckId);
-        }
-        console.error('❌ Migration rolled back due to errors');
-        throw error; // Re-throw to be caught by outer catch
+        console.error(`❌ Error processing deck "${localDeck.name}":`, error);
+        errors.push({ type: 'deck', name: localDeck.name, error });
+        // Continue with other decks
       }
     }
     
-    // Migrate streak data (optional, doesn't fail migration)
+    // Migrate streak data (always merge)
     try {
       const streakStr = localStorage.getItem('flashcards_streak');
       if (streakStr) {
-        const streakData = JSON.parse(streakStr);
+        const localStreak = JSON.parse(streakStr);
+        
+        // Get existing streak from Supabase
+        const { data: existingStats } = await supabase
+          .from('user_stats')
+          .select('streak_data')
+          .eq('user_id', userId)
+          .single();
+        
+        const supabaseStreak = existingStats?.streak_data || {};
+        
+        // Merge: use the better streak (higher currentStreak or more recent lastStudyDate)
+        const mergedStreak = {
+          currentStreak: Math.max(
+            localStreak.currentStreak || 0,
+            supabaseStreak.currentStreak || 0
+          ),
+          longestStreak: Math.max(
+            localStreak.longestStreak || 0,
+            supabaseStreak.longestStreak || 0
+          ),
+          lastStudyDate: localStreak.lastStudyDate && supabaseStreak.lastStudyDate
+            ? (new Date(localStreak.lastStudyDate) > new Date(supabaseStreak.lastStudyDate)
+                ? localStreak.lastStudyDate
+                : supabaseStreak.lastStudyDate)
+            : (localStreak.lastStudyDate || supabaseStreak.lastStudyDate)
+        };
+        
         await supabase
           .from('user_stats')
           .upsert({
             user_id: userId,
-            streak_data: streakData
+            streak_data: mergedStreak
           });
-        console.log('✅ Migrated streak data');
+        console.log('✅ Synced streak data');
       }
     } catch (streakError) {
-      console.warn('⚠️ Failed to migrate streak data (non-critical):', streakError);
+      console.warn('⚠️ Failed to sync streak data (non-critical):', streakError);
     }
     
-    // Only mark as migrated if NO errors occurred
-    if (errors.length === 0) {
-      localStorage.setItem(migrationKey, 'true');
-      console.log('✅ Migration completed successfully - all data migrated!');
+    if (errors.length > 0) {
+      console.warn(`⚠️ Migration completed with ${errors.length} error(s):`, errors);
+      return {
+        success: false,
+        error: errors,
+        message: `Migration completed with ${errors.length} error(s)`
+      };
     } else {
-      console.error('❌ Migration failed with errors:', errors);
-      throw new Error(`Migration failed: ${errors.length} error(s) occurred`);
+      console.log('✅ Sync completed successfully!');
+      return {
+        success: true,
+        message: 'Sync completed successfully'
+      };
     }
     
   } catch (error) {
-    console.error('❌ MIGRATION FAILED - data NOT marked as migrated. You can try again:', error);
-    // Don't set migration flag if migration failed
-    // Remove partial flag if it exists
-    localStorage.removeItem(migrationKey);
-    throw error;
+    console.error('❌ SYNC FAILED:', error);
+    return {
+      success: false,
+      error,
+      message: 'Migration failed with an unexpected error'
+    };
   }
 }
 
