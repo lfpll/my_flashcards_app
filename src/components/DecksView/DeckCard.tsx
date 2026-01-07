@@ -3,7 +3,7 @@
  * Displays individual deck information in a card format
  */
 
-import { getDueCardsCount } from '../../utils/storage.jsx';
+import { getDueCardsCount } from '../../utils/storageAdapter';
 import { useFlashcards } from '../../context/FlashcardContext';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../hooks/useConfirm';

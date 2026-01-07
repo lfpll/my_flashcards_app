@@ -6,7 +6,7 @@
 import { useMemo, useState } from 'react';
 import { useFlashcards } from '../../context/FlashcardContext';
 import { useToast } from '../../context/ToastContext';
-import { getDueCardsCount } from '../../utils/storage.jsx';
+import { getDueCardsCount } from '../../utils/storageAdapter';
 import Button from '../ui/Button';
 import InlineDeckEditor from '../deck/InlineDeckEditor';
 

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import * as storage from '../utils/storage';
+import * as storage from '../utils/storageAdapter';
 import { Deck, Card } from '../types/models';
 import { FlashcardContextType } from '../types/contexts';
 import { useAuth } from '../contexts/AuthContext';
