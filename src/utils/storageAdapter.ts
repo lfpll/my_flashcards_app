@@ -1,292 +1,287 @@
-import { Deck, Card } from '../types/models';
-import { supabase } from '../lib/supabase';
-import { LocalStorageAdapter } from './adapters/LocalStorageAdapter';
-import { SupabaseAdapter } from './adapters/SupabaseAdapter';
+/**
+ * Storage Adapter using RxDB
+ * Provides offline-first storage with automatic Supabase sync
+ */
+import { getDatabase, startReplication, stopReplication, FlashcardDatabase } from '../lib/rxdb';
+import { Deck, Card, DeckSize } from '../types/models';
 
 export interface StorageAdapter {
-  // Deck operations
   getAllDecks(): Promise<Deck[]>;
   getDeckById(deckId: string): Promise<Deck | undefined>;
   createDeck(name: string, description: string): Promise<Deck>;
   updateDeck(deckId: string, updates: Partial<Deck>): Promise<Deck | null>;
   deleteDeck(deckId: string): Promise<boolean>;
-  
-  // Card operations
   createCard(deckId: string, cardData: Partial<Card>): Promise<Card>;
   updateCard(deckId: string, cardId: string, updates: Partial<Card>): Promise<Card | null>;
   deleteCard(deckId: string, cardId: string): Promise<boolean>;
-  
-  // Stats operations
-  getStreakData(): Promise<any>;
-  updateStreak(): Promise<any>;
 }
 
 /**
- * HybridAdapter merges data from Supabase (primary) and localStorage (backup)
- * This ensures offline data is preserved even after login
+ * RxDB-based Storage Adapter
  */
-class HybridAdapter implements StorageAdapter {
-  private supabaseAdapter: SupabaseAdapter;
-  private localStorageAdapter: LocalStorageAdapter;
+class RxDBAdapter implements StorageAdapter {
+  private db: FlashcardDatabase | null = null;
 
-  constructor(userId: string) {
-    this.supabaseAdapter = new SupabaseAdapter(userId);
-    this.localStorageAdapter = new LocalStorageAdapter();
-  }
-
-  /**
-   * Merge decks from both sources, preferring Supabase but including localStorage-only decks
-   */
-  private mergeDecks(supabaseDecks: Deck[], localDecks: Deck[]): Deck[] {
-    const mergedMap = new Map<string, Deck>();
-    
-    // First, add all Supabase decks (primary source)
-    for (const deck of supabaseDecks) {
-      mergedMap.set(deck.id, deck);
+  private async getDb(): Promise<FlashcardDatabase> {
+    if (!this.db) {
+      this.db = await getDatabase();
     }
-    
-    // Then, add localStorage decks that don't exist in Supabase (by name matching)
-    const supabaseDeckNames = new Set(
-      supabaseDecks.map(d => d.name.toLowerCase().trim())
-    );
-    
-    for (const localDeck of localDecks) {
-      const localDeckName = localDeck.name.toLowerCase().trim();
-      
-      // If deck with same name exists in Supabase, prefer Supabase version
-      if (!supabaseDeckNames.has(localDeckName)) {
-        // Check if we already have this deck by ID (might have different name casing)
-        if (!mergedMap.has(localDeck.id)) {
-          mergedMap.set(localDeck.id, localDeck);
-        }
-      }
-    }
-    
-    return Array.from(mergedMap.values());
-  }
-
-  /**
-   * Merge cards from both sources, preferring Supabase but including localStorage-only cards
-   */
-  private mergeCards(supabaseCards: Card[], localCards: Card[]): Card[] {
-    const mergedMap = new Map<string, Card>();
-    
-    // First, add all Supabase cards (primary source)
-    for (const card of supabaseCards) {
-      mergedMap.set(card.id, card);
-    }
-    
-    // Then, add localStorage cards that don't exist in Supabase
-    const supabaseCardKeys = new Set(
-      supabaseCards.map(c => `${c.front.toLowerCase().trim()}|${c.back.toLowerCase().trim()}`)
-    );
-    
-    for (const localCard of localCards) {
-      const localCardKey = `${(localCard.front || '').toLowerCase().trim()}|${(localCard.back || '').toLowerCase().trim()}`;
-      
-      // If card with same content exists in Supabase, prefer Supabase version
-      if (!supabaseCardKeys.has(localCardKey)) {
-        // Check if we already have this card by ID
-        if (!mergedMap.has(localCard.id)) {
-          mergedMap.set(localCard.id, localCard);
-        }
-      }
-    }
-    
-    return Array.from(mergedMap.values());
+    return this.db;
   }
 
   async getAllDecks(): Promise<Deck[]> {
-    try {
-      const [supabaseDecks, localDecks] = await Promise.all([
-        this.supabaseAdapter.getAllDecks().catch(() => []),
-        this.localStorageAdapter.getAllDecks().catch(() => [])
-      ]);
-      
-      return this.mergeDecks(supabaseDecks, localDecks);
-    } catch (error) {
-      console.error('Error in HybridAdapter.getAllDecks:', error);
-      // Fallback to localStorage if Supabase fails
-      return this.localStorageAdapter.getAllDecks().catch(() => []);
+    const db = await this.getDb();
+    const deckDocs = await db.decks.find().exec();
+    
+    // Build decks with their cards
+    const decks: Deck[] = [];
+    for (const deckDoc of deckDocs) {
+      const cardDocs = await db.cards.find({ selector: { deckId: deckDoc.id } }).exec();
+      decks.push({
+        id: deckDoc.id,
+        name: deckDoc.name,
+        description: deckDoc.description,
+        createdAt: deckDoc.createdAt,
+        updatedAt: deckDoc.updatedAt,
+        cards: cardDocs.map(c => ({
+          id: c.id,
+          front: c.front,
+          back: c.back,
+          frontImageUrl: c.frontImageUrl,
+          backImageUrl: c.backImageUrl,
+          easeFactor: c.easeFactor,
+          interval: c.interval,
+          repetitions: c.repetitions,
+          nextReview: c.nextReview,
+          lastReviewed: c.lastReviewed,
+          reviews: c.reviews,
+          createdAt: c.createdAt
+        }))
+      });
     }
+    return decks;
   }
 
   async getDeckById(deckId: string): Promise<Deck | undefined> {
-    try {
-      // Try Supabase first
-      const supabaseDeck = await this.supabaseAdapter.getDeckById(deckId);
-      if (supabaseDeck) return supabaseDeck;
-      
-      // Fallback to localStorage
-      return await this.localStorageAdapter.getDeckById(deckId);
-    } catch (error) {
-      console.error('Error in HybridAdapter.getDeckById:', error);
-      // Fallback to localStorage
-      return this.localStorageAdapter.getDeckById(deckId);
-    }
+    const decks = await this.getAllDecks();
+    return decks.find(d => d.id === deckId);
   }
 
   async createDeck(name: string, description: string): Promise<Deck> {
-    try {
-      // Write to Supabase (primary source of truth)
-      const deck = await this.supabaseAdapter.createDeck(name, description);
-      // Don't write to localStorage if Supabase succeeds - Supabase is source of truth
-      // Migration will handle syncing if needed
-      return deck;
-    } catch (error) {
-      console.error('Error creating deck in Supabase, falling back to localStorage:', error);
-      // If Supabase fails, write to localStorage (offline mode)
-      return this.localStorageAdapter.createDeck(name, description);
-    }
+    const db = await this.getDb();
+    const now = Date.now();
+    const id = crypto.randomUUID();
+
+    await db.decks.insert({
+      id,
+      name,
+      description,
+      createdAt: now,
+      updatedAt: now,
+      userId: null
+    });
+
+    return { id, name, description, createdAt: now, updatedAt: now, cards: [] };
   }
 
   async updateDeck(deckId: string, updates: Partial<Deck>): Promise<Deck | null> {
-    try {
-      // Try Supabase first (source of truth)
-      const updated = await this.supabaseAdapter.updateDeck(deckId, updates);
-      // Don't update localStorage if Supabase succeeds - Supabase is source of truth
-      return updated;
-    } catch (error) {
-      console.error('Error updating deck in Supabase, trying localStorage:', error);
-      // Fallback to localStorage if Supabase fails
-      return this.localStorageAdapter.updateDeck(deckId, updates);
-    }
+    const db = await this.getDb();
+    const doc = await db.decks.findOne(deckId).exec();
+    if (!doc) return null;
+
+    await doc.patch({
+      name: updates.name ?? doc.name,
+      description: updates.description ?? doc.description,
+      updatedAt: Date.now()
+    });
+
+    return this.getDeckById(deckId) as Promise<Deck>;
   }
 
   async deleteDeck(deckId: string): Promise<boolean> {
-    try {
-      // Delete from Supabase (source of truth)
-      const supabaseSuccess = await this.supabaseAdapter.deleteDeck(deckId);
-      // Don't delete from localStorage if Supabase succeeds - Supabase is source of truth
-      return supabaseSuccess;
-    } catch (error) {
-      console.error('Error deleting deck in Supabase, trying localStorage:', error);
-      // Fallback to localStorage if Supabase fails
-      return this.localStorageAdapter.deleteDeck(deckId);
+    const db = await this.getDb();
+    
+    // Delete all cards in the deck
+    const cards = await db.cards.find({ selector: { deckId } }).exec();
+    for (const card of cards) {
+      await card.remove();
     }
+
+    // Delete the deck
+    const doc = await db.decks.findOne(deckId).exec();
+    if (doc) {
+      await doc.remove();
+      return true;
+    }
+    return false;
   }
 
   async createCard(deckId: string, cardData: Partial<Card>): Promise<Card> {
-    try {
-      // Write to Supabase (primary source of truth)
-      const card = await this.supabaseAdapter.createCard(deckId, cardData);
-      // Don't write to localStorage if Supabase succeeds - Supabase is source of truth
-      return card;
-    } catch (error) {
-      console.error('Error creating card in Supabase, falling back to localStorage:', error);
-      // If Supabase fails, write to localStorage (offline mode)
-      return this.localStorageAdapter.createCard(deckId, cardData);
+    const db = await this.getDb();
+    const now = Date.now();
+    const id = crypto.randomUUID();
+
+    const card = {
+      id,
+      deckId,
+      front: cardData.front || '',
+      back: cardData.back || '',
+      frontImageUrl: cardData.frontImageUrl || null,
+      backImageUrl: cardData.backImageUrl || null,
+      easeFactor: 2.5,
+      interval: 1,
+      repetitions: 0,
+      nextReview: now,
+      lastReviewed: null,
+      reviews: [],
+      createdAt: now,
+      updatedAt: now,
+      userId: null
+    };
+
+    await db.cards.insert(card);
+
+    // Update deck's updatedAt
+    const deckDoc = await db.decks.findOne(deckId).exec();
+    if (deckDoc) {
+      await deckDoc.patch({ updatedAt: now });
     }
+
+    return {
+      id,
+      front: card.front,
+      back: card.back,
+      frontImageUrl: card.frontImageUrl,
+      backImageUrl: card.backImageUrl,
+      easeFactor: card.easeFactor,
+      interval: card.interval,
+      repetitions: card.repetitions,
+      nextReview: card.nextReview,
+      lastReviewed: card.lastReviewed,
+      reviews: card.reviews,
+      createdAt: card.createdAt
+    };
   }
 
   async updateCard(deckId: string, cardId: string, updates: Partial<Card>): Promise<Card | null> {
-    try {
-      // Try Supabase first (source of truth)
-      const updated = await this.supabaseAdapter.updateCard(deckId, cardId, updates);
-      // Don't update localStorage if Supabase succeeds - Supabase is source of truth
-      return updated;
-    } catch (error) {
-      console.error('Error updating card in Supabase, trying localStorage:', error);
-      // Fallback to localStorage if Supabase fails
-      return this.localStorageAdapter.updateCard(deckId, cardId, updates);
+    const db = await this.getDb();
+    const doc = await db.cards.findOne(cardId).exec();
+    if (!doc) return null;
+
+    const now = Date.now();
+    await doc.patch({
+      front: updates.front ?? doc.front,
+      back: updates.back ?? doc.back,
+      frontImageUrl: updates.frontImageUrl !== undefined ? updates.frontImageUrl : doc.frontImageUrl,
+      backImageUrl: updates.backImageUrl !== undefined ? updates.backImageUrl : doc.backImageUrl,
+      easeFactor: updates.easeFactor ?? doc.easeFactor,
+      interval: updates.interval ?? doc.interval,
+      repetitions: updates.repetitions ?? doc.repetitions,
+      nextReview: updates.nextReview ?? doc.nextReview,
+      lastReviewed: updates.lastReviewed !== undefined ? updates.lastReviewed : doc.lastReviewed,
+      reviews: updates.reviews ?? doc.reviews,
+      updatedAt: now
+    });
+
+    // Update deck's updatedAt
+    const deckDoc = await db.decks.findOne(deckId).exec();
+    if (deckDoc) {
+      await deckDoc.patch({ updatedAt: now });
     }
+
+    const updated = await db.cards.findOne(cardId).exec();
+    if (!updated) return null;
+
+    return {
+      id: updated.id,
+      front: updated.front,
+      back: updated.back,
+      frontImageUrl: updated.frontImageUrl,
+      backImageUrl: updated.backImageUrl,
+      easeFactor: updated.easeFactor,
+      interval: updated.interval,
+      repetitions: updated.repetitions,
+      nextReview: updated.nextReview,
+      lastReviewed: updated.lastReviewed,
+      reviews: updated.reviews,
+      createdAt: updated.createdAt
+    };
   }
 
   async deleteCard(deckId: string, cardId: string): Promise<boolean> {
-    try {
-      // Delete from Supabase (source of truth)
-      const supabaseSuccess = await this.supabaseAdapter.deleteCard(deckId, cardId);
-      // Don't delete from localStorage if Supabase succeeds - Supabase is source of truth
-      return supabaseSuccess;
-    } catch (error) {
-      console.error('Error deleting card in Supabase, trying localStorage:', error);
-      // Fallback to localStorage if Supabase fails
-      return this.localStorageAdapter.deleteCard(deckId, cardId);
-    }
-  }
-
-  async getStreakData(): Promise<any> {
-    try {
-      // Try Supabase first
-      const supabaseStreak = await this.supabaseAdapter.getStreakData();
+    const db = await this.getDb();
+    const doc = await db.cards.findOne(cardId).exec();
+    if (doc) {
+      await doc.remove();
       
-      // Merge with localStorage (prefer higher values)
-      try {
-        const localStreak = await this.localStorageAdapter.getStreakData();
-        return {
-          currentStreak: Math.max(
-            supabaseStreak.currentStreak || 0,
-            localStreak.currentStreak || 0
-          ),
-          longestStreak: Math.max(
-            supabaseStreak.longestStreak || 0,
-            localStreak.longestStreak || 0
-          ),
-          lastStudyDate: supabaseStreak.lastStudyDate && localStreak.lastStudyDate
-            ? (new Date(supabaseStreak.lastStudyDate) > new Date(localStreak.lastStudyDate)
-                ? supabaseStreak.lastStudyDate
-                : localStreak.lastStudyDate)
-            : (supabaseStreak.lastStudyDate || localStreak.lastStudyDate)
-        };
-      } catch {
-        return supabaseStreak;
+      // Update deck's updatedAt
+      const deckDoc = await db.decks.findOne(deckId).exec();
+      if (deckDoc) {
+        await deckDoc.patch({ updatedAt: Date.now() });
       }
-    } catch (error) {
-      console.error('Error getting streak from Supabase, using localStorage:', error);
-      return this.localStorageAdapter.getStreakData();
+      
+      return true;
     }
-  }
-
-  async updateStreak(): Promise<any> {
-    try {
-      // Update Supabase (source of truth)
-      const streak = await this.supabaseAdapter.updateStreak();
-      // Don't update localStorage if Supabase succeeds - Supabase is source of truth
-      return streak;
-    } catch (error) {
-      console.error('Error updating streak in Supabase, using localStorage:', error);
-      // Fallback to localStorage if Supabase fails
-      return this.localStorageAdapter.updateStreak();
-    }
+    return false;
   }
 }
 
-let cachedAdapter: StorageAdapter | null = null;
-let cachedUserId: string | null = null;
+// Singleton adapter
+let adapterInstance: RxDBAdapter | null = null;
 
 export async function getStorageAdapter(): Promise<StorageAdapter> {
-  // If Supabase is not configured, always use localStorage
-  if (!supabase) {
-    if (!cachedAdapter) {
-      cachedAdapter = new LocalStorageAdapter();
+  if (!adapterInstance) {
+    adapterInstance = new RxDBAdapter();
+  }
+  return adapterInstance;
+}
+
+export function clearAdapterCache(): void {
+  // No-op for RxDB - database persists
+}
+
+// Re-export replication functions for auth context
+export { startReplication, stopReplication };
+
+// ==================== UTILITY FUNCTIONS ====================
+
+export function getDueCardsCount(deck: Deck): number {
+  const now = Date.now();
+  return deck.cards.filter(card => card.nextReview <= now).length;
+}
+
+export function getDeckSize(deck: Deck): DeckSize {
+  try {
+    const deckString = JSON.stringify(deck);
+    const bytes = new Blob([deckString]).size;
+    const kb = bytes / 1024;
+    const mb = kb / 1024;
+    
+    let formatted;
+    if (mb >= 1) {
+      formatted = `${mb.toFixed(2)} MB`;
+    } else if (kb >= 1) {
+      formatted = `${kb.toFixed(2)} KB`;
+    } else {
+      formatted = `${bytes} bytes`;
     }
-    return cachedAdapter;
+    
+    return { bytes, formatted };
+  } catch (error) {
+    console.error('Error calculating deck size:', error);
+    return { bytes: 0, formatted: '0 bytes' };
   }
-  
-  // Check current auth state
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  // Return cached adapter if user hasn't changed
-  if (user?.id === cachedUserId && cachedAdapter) {
-    return cachedAdapter;
-  }
-  
-  // Create new adapter based on auth state
-  if (user) {
-    // Use HybridAdapter when logged in to merge Supabase + localStorage
-    cachedAdapter = new HybridAdapter(user.id);
-    cachedUserId = user.id;
-  } else {
-    cachedAdapter = new LocalStorageAdapter();
-    cachedUserId = null;
-  }
-  
-  return cachedAdapter;
 }
 
-// Helper to clear cache when user logs out
-export function clearAdapterCache() {
-  cachedAdapter = null;
-  cachedUserId = null;
-}
+// ==================== CONVENIENCE EXPORTS ====================
 
+const adapter = new RxDBAdapter();
+
+export const getAllDecks = () => adapter.getAllDecks();
+export const getDeckById = (deckId: string) => adapter.getDeckById(deckId);
+export const createDeck = (name: string, description: string = '') => adapter.createDeck(name, description);
+export const updateDeck = (deckId: string, updates: Partial<Deck>) => adapter.updateDeck(deckId, updates);
+export const deleteDeck = (deckId: string) => adapter.deleteDeck(deckId);
+export const createCard = (deckId: string, cardData: Partial<Card>) => adapter.createCard(deckId, cardData);
+export const updateCard = (deckId: string, cardId: string, updates: Partial<Card>) => adapter.updateCard(deckId, cardId, updates);
+export const deleteCard = (deckId: string, cardId: string) => adapter.deleteCard(deckId, cardId);
