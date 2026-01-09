@@ -9,7 +9,7 @@ import { useAuth } from './contexts/AuthContext';
 import { useFlashcards } from './context/FlashcardContext';
 import { useGamification } from './context/GamificationContext';
 import LoadingSpinner from './components/ui/LoadingSpinner';
-import { getDueCardsCount } from './utils/storage';
+import { getDueCardsCount } from './utils/storageAdapter';
 
 function App() {
   const { user } = useAuth();

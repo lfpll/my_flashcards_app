@@ -7,7 +7,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useFlashcards } from '../../context/FlashcardContext';
 import { useToast } from '../../context/ToastContext';
 import { useConfirm } from '../../hooks/useConfirm';
-import { getDueCardsCount, getDeckSize } from '../../utils/storage.jsx';
+import { getDueCardsCount, getDeckSize } from '../../utils/storageAdapter';
 import Button from '../ui/Button';
 import InlineDeckEditor from './InlineDeckEditor';
 import InlineCardEditor from './card/InlineCardEditor.tsx';

@@ -6,7 +6,7 @@
 import { useMemo } from 'react';
 import { useFlashcards } from '../../context/FlashcardContext';
 import { useGamification } from '../../context/GamificationContext';
-import { getDueCardsCount } from '../../utils/storage.jsx';
+import { getDueCardsCount } from '../../utils/storageAdapter';
 import Button from '../ui/Button';
 
 export default function Dashboard({ onSelectDeck, onStudyAll, onCreateDeck, onNavigate, onStudy }) {
