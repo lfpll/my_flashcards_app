@@ -171,41 +171,53 @@ function sortByOldestStudiedFirst(a: Card, b: Card): number {
 // ==================== MAIN FUNCTION ====================
 
 /**
- * Get cards that are due for review.
+ * Get cards available for study.
  * 
- * Order priority:
- * 1. Cards never studied (hardest first)
- * 2. Cards studied but not recently - more than 30 min ago (hardest first)
- * 3. Cards studied recently - less than 30 min ago (oldest first for spacing)
+ * Priority:
+ * 1. Cards that are due (nextReview <= now)
+ * 2. If none due: cards studied more than 30 min ago (for practice)
+ * 
+ * Ordering:
+ * - Never studied cards first (hardest first)
+ * - Then cards not studied recently (hardest first)
+ * - Then recently studied cards (oldest first for spacing)
  */
 export function getDueCards(deck: Deck): Card[] {
   const now = Date.now();
   const thirtyMinutesAgo = now - (30 * 60 * 1000);
   
+  // First: try cards that are actually due
   const dueCards = deck.cards.filter(card => card.nextReview <= now);
   
-  // Group cards by study status
-  const neverStudied = dueCards.filter(wasNeverStudied);
+  if (dueCards.length > 0) {
+    return sortCardsForStudy(dueCards, thirtyMinutesAgo);
+  }
   
-  const studiedButNotRecently = dueCards.filter(card => 
-    !wasNeverStudied(card) && !wasStudiedRecently(card, thirtyMinutesAgo)
+  // No cards due: return max 10 cards for practice (studied >30 min ago)
+  const practiceCards = deck.cards.filter(card => 
+    !wasStudiedRecently(card, thirtyMinutesAgo)
   );
   
-  const studiedRecently = dueCards.filter(card => 
+  return practiceCards.sort(sortByHardestFirst).slice(0, 10);
+}
+
+function sortCardsForStudy(cards: Card[], thirtyMinutesAgo: number): Card[] {
+  const neverStudied = cards.filter(wasNeverStudied);
+  const studiedButNotRecently = cards.filter(card => 
+    !wasNeverStudied(card) && !wasStudiedRecently(card, thirtyMinutesAgo)
+  );
+  const studiedRecently = cards.filter(card => 
     wasStudiedRecently(card, thirtyMinutesAgo)
   );
   
-  if (neverStudied.length > 0 || studiedButNotRecently.length > 0 ) {
+  // Prioritize cards not studied recently
+  if (neverStudied.length > 0 || studiedButNotRecently.length > 0) {
     return [
       ...neverStudied.sort(sortByHardestFirst),
       ...studiedButNotRecently.sort(sortByHardestFirst)
     ];
-  } else {
-    return [
-      ...studiedRecently.sort(sortByOldestStudiedFirst)
-    ];
   }
   
-  
+  return studiedRecently.sort(sortByOldestStudiedFirst);
 }
 
