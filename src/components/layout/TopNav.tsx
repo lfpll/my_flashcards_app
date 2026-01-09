@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TopNav({ 
   currentView,

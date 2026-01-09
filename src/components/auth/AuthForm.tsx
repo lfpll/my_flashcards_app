@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import FormInput from '../forms/FormInput';

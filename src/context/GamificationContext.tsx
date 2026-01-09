@@ -109,7 +109,6 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
     totalCardsStudied,
     dailyProgress,
     goalMet,
-    achievements: [], // TODO: Implement achievements
     recordStudySession,
     updateGoal: setDailyGoal
   };

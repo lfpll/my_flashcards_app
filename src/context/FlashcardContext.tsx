@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import * as storage from '../utils/storageAdapter';
 import { Deck, Card } from '../types/models';
 import { FlashcardContextType } from '../types/contexts';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from './AuthContext';
 
 const FlashcardContext = createContext<FlashcardContextType | null>(null);
 

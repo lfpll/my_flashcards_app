@@ -25,8 +25,7 @@ export default function DecksView({ onSelectDeck, onCreateDeck }) {
         dueCount: getDueCardsCount(deck),
         progress: deck.cards.length > 0 
           ? Math.round((deck.cards.filter(c => c.easeFactor > 2.8).length / deck.cards.length) * 100)
-          : 0,
-        lastStudied: Math.floor(Math.random() * 24) // Mock data
+          : 0
       }))
       .filter(deck => {
         if (filterBy === 'due') return deck.dueCount > 0;
@@ -39,7 +38,7 @@ export default function DecksView({ onSelectDeck, onCreateDeck }) {
           case 'due': return b.dueCount - a.dueCount;
           case 'progress': return b.progress - a.progress;
           case 'recent': 
-          default: return a.lastStudied - b.lastStudied;
+          default: return b.updatedAt - a.updatedAt;
         }
       });
   }, [decks, sortBy, filterBy]);
@@ -170,11 +169,11 @@ export default function DecksView({ onSelectDeck, onCreateDeck }) {
                     </div>
                   </div>
 
-                  {/* Last Studied */}
+                  {/* Last Updated */}
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-theme-textDim">Last studied:</span>
+                    <span className="text-theme-textDim">Updated:</span>
                     <span className="font-medium">
-                      {deck.lastStudied === 0 ? 'Just now' : `${deck.lastStudied}h ago`}
+                      {new Date(deck.updatedAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>

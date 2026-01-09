@@ -1,20 +1,18 @@
 import { useState } from 'react';
 import TopNav from './components/layout/TopNav';
-import Dashboard from './components/layout/Dashboard';
+import MinimalistDashboard from './components/layout/minimalist/MinimalistDashboard';
 import DecksView from './components/DecksView/DecksView';
 import DeckDetail from './components/deck/DeckDetail';
 import StudySession from './components/study/StudySession';
 import AuthForm from './components/auth/AuthForm';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from './context/AuthContext';
 import { useFlashcards } from './context/FlashcardContext';
-import { useGamification } from './context/GamificationContext';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import { getDueCardsCount } from './utils/storageAdapter';
 
 function App() {
   const { user } = useAuth();
   const { loading, decks } = useFlashcards();
-  const { } = useGamification();
   const [currentView, setCurrentView] = useState<string>('home');
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [previousView, setPreviousView] = useState<string>('home');
@@ -84,7 +82,7 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentView === 'home' && (
-          <Dashboard
+          <MinimalistDashboard
             onSelectDeck={navigateToDeckDetail}
             onStudyAll={handleStudyAll}
             onCreateDeck={() => handleNavigate('decks')}

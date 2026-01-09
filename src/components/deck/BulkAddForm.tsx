@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { useFlashcards } from '../../context/FlashcardContext';
 import { useToast } from '../../context/ToastContext';
-import { parseCSV } from '../../utils/csvParser.jsx';
+import { parseCSV } from '../../utils/csvParser';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import FormTextarea from '../forms/FormTextarea';

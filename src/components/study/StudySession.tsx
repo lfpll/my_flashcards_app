@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useFlashcards } from '../../context/FlashcardContext';
 import { useGamification } from '../../context/GamificationContext';
-import { getDueCards, getWorstPerformingCards, updateCardWithRating } from '../../utils/spacedRepetition.jsx';
+import { getDueCards, updateCardWithRating } from '../../utils/spacedRepetition';
 import FlashCard from '../card/FlashCard';
 import Button from '../ui/Button';
 import ConfirmDialog from '../ui/ConfirmDialog';
@@ -55,9 +55,7 @@ export default function StudySession({ deckId, onExit }) {
       return { deck: null, dueCards: [] };
     }
 
-    const dueCards = getDueCards(foundDeck);
-    // If no due cards, use worst performing cards for practice
-    const cardsToStudy = dueCards.length > 0 ? dueCards : getWorstPerformingCards(foundDeck, 10);
+    const cardsToStudy = getDueCards(foundDeck);
 
     return {
       deck: foundDeck,
@@ -148,9 +146,7 @@ export default function StudySession({ deckId, onExit }) {
     }
 
     // Check for due cards first
-    const dueCardsNow = getDueCards(foundDeck);
-    // If no due cards, get worst performing cards for practice
-    const cardsToStudy = dueCardsNow.length > 0 ? dueCardsNow : getWorstPerformingCards(foundDeck, 10);
+    const cardsToStudy = getDueCards(foundDeck);
 
     if (cardsToStudy.length === 0) {
       onExit();

@@ -43,17 +43,6 @@ export interface GamificationStats {
   goalMet: boolean;
   totalCardsStudied: number;
   lastStudyDate: string | null;
-  achievements: Achievement[];
-}
-
-// Achievement interface
-export interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  unlocked: boolean;
-  unlockedAt: number | null;
 }
 
 // CSV parsing result
