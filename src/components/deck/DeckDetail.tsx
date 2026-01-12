@@ -177,9 +177,6 @@ export default function DeckDetail({ deckId, onBack, onStudy, backLabel = 'Back'
                 <span className="hidden sm:inline">
                   {canStudy ? `Study ${dueCards} card${dueCards > 1 ? 's' : ''}` : 'Practice'}
                 </span>
-                <span className="hidden">
-                  {canStudy ? 'Study' : 'Practice'}
-                </span>
               </Button>
             )}
           </div>
